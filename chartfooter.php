@@ -74,7 +74,7 @@ var dataset = [
         // grab the zone names to be displayed in the plot legend
         $zone_name=$row['name'];
         $zone_sensor_id=$row['sensors_id'];
-		$zone_sensor_child_id=$row['sensors_child_id'];
+		$zone_sensor_child_id=$row['sensor_child_id'];
         
         $query="select * from messages_in_view_24h where node_id = '{$zone_sensor_id}' AND child_id = '{$zone_sensor_child_id}';";
         $result = $conn->query($query);
@@ -162,7 +162,7 @@ var wdataset = [
         echo "{label: \"".$zone_name."\", data: ".json_encode($zone_temp).", color: rainbow(".$count.",".++$counter.") }, \n";
     }
     // add outside weather temperature
-    echo "{label: \"".$lang['graph_outsie']."\", data: ".json_encode($weather_c).", color: rainbow(".$count.",".++$counter.") }, \n";
+    //echo "{label: \"".$lang['graph_outsie']."\", data: ".json_encode($weather_c).", color: rainbow(".$count.",".++$counter.") }, \n";
 ?> ];
 
 //background-color for boiler on time 

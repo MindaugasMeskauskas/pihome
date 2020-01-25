@@ -92,7 +92,7 @@ while ($row = mysqli_fetch_assoc($result)) {
 */
 
 //weather temperature
-$query="select * from messages_in_view_24h where node_id= 1";
+$query="select * from messages_in_view_24h where node_id= 21";
 $result = $conn->query($query);
 //create array of pairs of x and y values
 $weather_c = array();

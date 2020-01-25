@@ -79,6 +79,15 @@ $boiler_name = $row['name'];
 $boiler_max_operation_time = $row['max_operation_time'];
 $boiler_hysteresis_time = $row['hysteresis_time'];
 
+
+//#######################
+$query = "SELECT * FROM hot_water_tank LIMIT 1";
+$result = $conn->query($query);
+$row = mysqli_fetch_array($result);
+$tank_node_id = $row['node_id'];
+$shower_time = $row['shower_time'];
+
+
 //Get data from nodes table
 $query = "SELECT * FROM nodes WHERE id = {$row['node_id']} AND status IS NOT NULL LIMIT 1";
 $result = $conn->query($query);
@@ -104,6 +113,9 @@ while ($row = mysqli_fetch_assoc($results)) {
 	$max_operation_time=$row['max_operation_time'];
 	$location_hysteresis_time=$row['hysteresis_time'];
 	$zone_enable=$row['status'];
+	
+//########
+	$zone_type=$row['type'];
 
 	//query to get node id from nodes table
 	$query = "SELECT * FROM nodes WHERE id = {$row['sensor_id']} AND nodes.`purge` = '0' AND status IS NOT NULL LIMIT 1;";
@@ -220,9 +232,15 @@ while ($row = mysqli_fetch_assoc($results)) {
 	$override_arr[$override_index] = $ovactive;
 	$override_index = $override_index+1;
    	echo '<button class="btn btn-default btn-circle btn-xxl mainbtn animated fadeIn" data-href="#" data-toggle="modal" data-target="#'.$row['type'].''.$row['id'].'" data-backdrop="static" data-keyboard="false">
-	<h3><small>'.$row['name'].'</small></h3>
-	<h3 class="degre">'.number_format(DispTemp($conn,$room_c),1).'&deg;</h3>
-	<h3 class="status">';
+	<h3><small>'.$row['name'].'</small></h3>';
+####//<h3 class="degre">'.number_format(DispTemp($conn,$room_c),1).'&deg;</h3>';
+	if ($zone_type == 'Water' AND $sensor_id == $tank_node_id) {
+		echo '<h5 style="margin-top:5px;">'.number_format(DispTemp($conn,$room_c),1).'&deg;</h5>';
+		echo '<h3><small>Shower: '. $shower_time.' min</small></h3>';
+	} else {
+		echo '<h3 class="degre">'.number_format(DispTemp($conn,$room_c),1).'&deg;</h3>';
+	}
+	echo '<h3 class="status">';
     //Now show status indicators
     //Left is circle with color showing heating, on target, away
 	//  #dc0000 red     - heating

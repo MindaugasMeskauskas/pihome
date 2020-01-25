@@ -235,7 +235,7 @@ echo '
 	echo '<option value="'.$node_id.'" selected>'.($node_id=='0' ? 'N/A' : $node_id).'</option>';
 	
 	//get list from nodes table to display 
-	$query = "SELECT * FROM nodes where name = 'Boiler Relay' OR name = 'Boiler Controller' AND node_id!=0;";
+	$query = "SELECT * FROM nodes where CHAR_LENGTH(node_id) = 3 and SUBSTRING(node_id, 1,1) = 2;";
 	$result = $conn->query($query);
 	if ($result){
 		while ($nrow=mysqli_fetch_array($result)) {

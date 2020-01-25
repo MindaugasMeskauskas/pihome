@@ -202,7 +202,7 @@ $s_row = mysqli_fetch_assoc($result);
 ?>
 
 <?php echo '<option selected >'.$s_row['node_id'].'</option>'; ?>
-<?php  $query = "SELECT node_id, child_id_1 FROM nodes where name = 'Temperature Sensor'";
+<?php  $query = "SELECT node_id, child_id_1 FROM nodes where name = 'Temperature Sensor' or name = 'Boiler Relay & Temp'";
 $result = $conn->query($query);
 echo "<option></option>";
 while ($datarw=mysqli_fetch_array($result)) {

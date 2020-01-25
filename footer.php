@@ -63,7 +63,7 @@ window.setTimeout(function() {
     });
 }, 10000);
 
-<?php if ($_SERVER['REQUEST_URI'] == '/home.php'){ ?>
+<?php if ($_SERVER['REQUEST_URI'] == '/heat/home.php'){ ?>
 	//load homelist.php  
 	$(document).ready(function(){
 		$.get('homelist.php', function(output) {
@@ -72,7 +72,7 @@ window.setTimeout(function() {
 	});
 <?php } ?>
 
-<?php if ($_SERVER['REQUEST_URI'] == '/schedule.php'){ ?>
+<?php if ($_SERVER['REQUEST_URI'] == '/heat/schedule.php'){ ?>
 //load schedulelist.php  
 $(document).ready(function(){
 	$.get('schedulelist.php', function(output) {
@@ -81,7 +81,7 @@ $(document).ready(function(){
  });
 <?php } ?>
 
-<?php if ($_SERVER['REQUEST_URI'] == '/settings.php'){ ?>
+<?php if ($_SERVER['REQUEST_URI'] == '/heat/settings.php'){ ?>
 //load settingslist
 $(document).ready(function(){
 	$.get('settingslist.php', function(output) {
@@ -126,7 +126,7 @@ $(document).ready(function(){
 
 <script>
 <?php 
-if (($_SERVER['SCRIPT_NAME'] == '/schedule_edit.php') OR ($_SERVER['SCRIPT_NAME'] == '/schedule_add.php')){
+if (($_SERVER['SCRIPT_NAME'] == '/heat/schedule_edit.php') OR ($_SERVER['SCRIPT_NAME'] == '/heat/schedule_add.php')){
 	$query = "select * from zone where status = 1;";
 	$results = $conn->query($query);	
 	while ($row = mysqli_fetch_assoc($results)) { ?>
@@ -142,7 +142,7 @@ if (($_SERVER['SCRIPT_NAME'] == '/schedule_edit.php') OR ($_SERVER['SCRIPT_NAME'
 }
 ?>
 
-<?php if (($_SERVER['REQUEST_URI'] == '/holidays_add.php') OR ($_SERVER['SCRIPT_NAME'] == '/holidays_edit.php')){ ?>
+<?php if (($_SERVER['REQUEST_URI'] == '/heat/holidays_add.php') OR ($_SERVER['SCRIPT_NAME'] == '/heat/holidays_edit.php')){ ?>
     $(".form_datetime").datetimepicker({
         //format: "dd MM yyyy - hh:ii",
 		format: "yyyy-mm-dd hh:ii",
@@ -155,14 +155,14 @@ if (($_SERVER['SCRIPT_NAME'] == '/schedule_edit.php') OR ($_SERVER['SCRIPT_NAME'
 </script>
 
 <script>
-<?php if (($_SERVER['SCRIPT_NAME'] == '/schedule_edit.php') OR ($_SERVER['SCRIPT_NAME'] == '/schedule_add.php') OR ($_SERVER['SCRIPT_NAME'] == '/schedule.php')){ ?>
+<?php if (($_SERVER['SCRIPT_NAME'] == '/heat/schedule_edit.php') OR ($_SERVER['SCRIPT_NAME'] == '/heat/schedule_add.php') OR ($_SERVER['SCRIPT_NAME'] == '/heat/schedule.php')){ ?>
 	 // popover
 	$("[data-toggle=popover]")
 		.popover()
 <?php } ?>
 </script>
 
-<?php if ($_SERVER['REQUEST_URI'] == '/chart.php'){include("chartfooter.php");} ?>
+<?php if ($_SERVER['REQUEST_URI'] == '/heat/chart.php'){include("chartfooter.php");} ?>
 </body>
 </html>
 <?php if(isset($conn)) { $conn->close();} ?>
