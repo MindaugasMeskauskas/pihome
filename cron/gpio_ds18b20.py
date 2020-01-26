@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import time, os, fnmatch, MySQLdb as mdb, logging
 from decimal import Decimal
+import ConfigParser
 class bc:
 	hed = '\033[0;36;40m'
 	dtm = '\033[0;36;40m'
@@ -34,11 +35,13 @@ logger=logging.getLogger(__name__)
 os.system('modprobe w1-gpio')
 os.system('modprobe w1-therm')
 
-#Database Settings Variables 
-dbhost = 'localhost'
-dbuser = 'root'
-dbpass = 'passw0rd'
-dbname = 'pihome'
+# Initialise the database access varables
+config = ConfigParser.ConfigParser()
+config.read('../st_inc/db_config.ini')
+dbhost = config.get('db', 'hostname')
+dbuser = config.get('db', 'dbusername')
+dbpass = config.get('db', 'dbpassword')
+dbname = config.get('db', 'dbname')
 
 print bc.dtm + time.ctime() + bc.ENDC + ' - DS18B20 Temperature Sensors Script Started'
 print "-" * 68

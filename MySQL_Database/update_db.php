@@ -20,7 +20,8 @@ echo "\033[0m";
 echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - PiHome Database Update Script Started \n"; 
 $line = "--------------------------------------------------------------- \n";
 
-require_once(__DIR__.'../../st_inc/dbStruct.php');
+
+require_once(__DIR__.'../st_inc/dbStruct.php');
 //Set php script execution time in seconds
 ini_set('max_execution_time', 400); 
 $date_time = date('Y-m-d H:i:s');
@@ -35,14 +36,11 @@ if ($version[0] > 7){
 	echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - php version \033[41m".phpversion()."\033[0m looks OK \n";
 }
 
-/*********************************************************
- * Modify Following variable according to your settings  *
- *********************************************************/
-$hostname = 'localhost';
-$dbname   = 'pihome';
-$dbusername = 'root';
-$dbpassword = 'passw0rd';
-$connect_error = 'Sorry We are Experiencing MySQL Database Connection Problem...';
+$settings = parse_ini_file(__DIR__.'/../st_inc/db_config.ini');
+foreach ($settings as $key => $setting) {
+    // Notice the double $$, this tells php to create a variable with the same name as key
+    $$key = $setting;
+}
 
 echo "\033[32mMake Sure you have correct MySQL/MariaDB credentials as following \033[0m\n";
 echo "Hostname:     ".$hostname."\n";
@@ -131,7 +129,7 @@ if ($db_selected) {
 
 		echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - Applying Updates to Database. \n";
 		// Name of the file
-		$filename = __DIR__.'/pihome_mysql_database.sql';
+		$filename = __DIR__.'/currentDB_dump.sql';
 		// Select database
 		mysqli_select_db($conn, $dbname) or die('Error Selecting MySQL Database: ' . mysqli_error($conn));
 		// Temporary variable, used to store current query

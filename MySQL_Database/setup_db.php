@@ -34,14 +34,11 @@ if ($version[0] > 7){
 	echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - php version \033[41m".phpversion()."\033[0m looks OK \n";
 }
 
-//*********************************************************
-//* Modify Following variable according to your settings  *
-//*********************************************************
-$hostname = 'localhost';
-$dbname   = 'pihome';
-$dbusername = 'pihomedbadmin';
-$dbpassword = 'pihome2018';
-$connect_error = 'Sorry We are Experiencing MySQL Database Connection Problem...';
+$settings = parse_ini_file(__DIR__.'/../st_inc/db_config.ini');
+foreach ($settings as $key => $setting) {
+    // Notice the double $$, this tells php to create a variable with the same name as key
+    $$key = $setting;
+}
 
 echo "\033[32mMake Sure you have correct MySQL/MariaDB credentials as following \033[0m\n";
 echo "Hostname:     ".$hostname."\n";

@@ -28,15 +28,19 @@ print "*                                 Have Fun - PiHome.eu *"
 print "********************************************************"
 print " " + bc.ENDC
 import sys, telnetlib, MySQLdb as mdb, time
+import ConfigParser
+
 # ref: https://forum.mysensors.org/topic/7818/newline-of-debug-output/2
 # stty -F /dev/ttyUSB0 115200
 # cat /dev/ttyUSB0
 
-#PiHome Database Settings Variables 
-dbhost = 'localhost'
-dbuser = 'root'
-dbpass = 'passw0rd'
-dbname = 'pihome'
+# Initialise the database access varables
+config = ConfigParser.ConfigParser()
+config.read('/var/www/st_inc/db_config.ini')
+dbhost = config.get('db', 'hostname')
+dbuser = config.get('db', 'dbusername')
+dbpass = config.get('db', 'dbpassword')
+dbname = config.get('db', 'dbname')
 
 con = mdb.connect(dbhost, dbuser, dbpass, dbname)
 cur = con.cursor()

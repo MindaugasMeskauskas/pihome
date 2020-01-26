@@ -29,12 +29,15 @@ print " "
 print " " + bc.ENDC
 
 import MySQLdb as mdb, datetime, sys, smtplib, string
+import ConfigParser
 
-#PiHome Database Settings Variables
-dbhost = 'localhost'
-dbuser = 'root'
-dbpass = 'passw0rd'
-dbname = 'pihome'
+# Initialise the database access varables
+config = ConfigParser.ConfigParser()
+config.read('/var/www/st_inc/db_config.ini')
+dbhost = config.get('db', 'hostname')
+dbuser = config.get('db', 'dbusername')
+dbpass = config.get('db', 'dbpassword')
+dbname = config.get('db', 'dbname')
 
 # Create the container (outer) email message.
 try:

@@ -36,19 +36,10 @@ if ($version[0] > 7){
 	echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - PHP Version \033[41m".phpversion()."\033[0m Looks OK \n";
 }
 
-//*********************************************************
-//* Modify Following variable according to your settings  *
-//*********************************************************
-$hostname = 'localhost';
-$dbname   = 'pihome';
-$dbusername = 'pihomedbadmin';
-$dbpassword = 'pihome2018';
-$connect_error = 'Sorry We are Experiencing MySQL Database Connection Problem...';
-
-//Test Connection to MySQL Server with Given Username & Password 
-$conn = new mysqli($hostname, $dbusername, $dbpassword);
-if ($conn->connect_error){
-	die('Database Connecction Failed with Error: '.$conn->connect_error);
+$settings = parse_ini_file(__DIR__.'/st_inc/db_config.ini');
+foreach ($settings as $key => $setting) {
+    // Notice the double $$, this tells php to create a variable with the same name as key
+    $$key = $setting;
 }
 
 $db_selected = mysqli_select_db($conn, $dbname);
