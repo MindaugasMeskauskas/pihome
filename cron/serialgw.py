@@ -136,11 +136,7 @@ while 1:
 	# ..:: Un-comments Following two lines to see what you are receing and size of string ::..
 	# print "Size of String:          ", sys.getsizeof(in_str)," \n"
 	# print "String as Received:      ",in_str," \n"
-<<<<<<< HEAD
-	if not sys.getsizeof(in_str) <= 22 and in_str[:1] != '0': #here is the line where sensor IDs over 100 are processed
-=======
 	if not sys.getsizeof(in_str) <= 22 and in_str[:1] != '0': #here is the line where sensor are processed
->>>>>>> upstream/master
 
 		print bc.ylw + "Size of the String Received:      ", sys.getsizeof(in_str), bc.ENDC
 		print "Date & Time:                 ",time.ctime()
@@ -148,11 +144,7 @@ while 1:
 		statement = in_str.split(";")
 		print "Full Statement Received:     ",statement
 		
-<<<<<<< HEAD
 		if len(statement) == 6 and statement[0].isdigit():
-=======
-		if len(statement) == 6 and statement[0].isdigit(): 
->>>>>>> upstream/master
 			node_id = int(statement[0])
 			print "Node ID:                     ",node_id
 			child_sensor_id = int(statement[1])
@@ -163,20 +155,14 @@ while 1:
 			print "Acknowledge:                 ",ack
 			sub_type = int(statement[4])
 			print "Sub Type:                    ",sub_type
-<<<<<<< HEAD
-			payload = statement[5].rstrip()
-=======
+
 			payload = statement[5].rstrip() # remove \n from payload
->>>>>>> upstream/master
+
 			print "Pay Load:                    ",payload
 			try:
 				con = mdb.connect(dbhost, dbuser, dbpass, dbname)
 				cur = con.cursor()
-<<<<<<< HEAD
-			
-=======
-				
->>>>>>> upstream/master
+
 				# ..::Step One::..
 				# First time Temperature Sensors Node Comes online: Add Node to The Nodes Table.
 				if (node_id != 0 and child_sensor_id == 255 and message_type == 0 and sub_type == 17):
@@ -192,7 +178,6 @@ while 1:
 						print "1: Node ID:",node_id," Already Exist In Node Table, Updating MS Version \n\n"
 						cur.execute('UPDATE nodes SET ms_version = %s where node_id = %s', (payload, node_id))
 						con.commit()
-<<<<<<< HEAD
 					# if node is water tank temp sensor add it to database
 					if (int(len(str(abs(node_id)))) == 3 and int(str(node_id)[1]) == 3):
 						cur.execute('SELECT COUNT(*) FROM `hot_water_tank` where node_id = (%s)', (node_id, )) 
@@ -203,9 +188,6 @@ while 1:
 							cur.execute('INSERT INTO hot_water_tank(node_id) VALUES(%s)', (node_id, ))
 							con.commit()
 	
-=======
-		
->>>>>>> upstream/master
 				# ..::Step One B::..
 				# First time Node Comes online with Repeater Feature Enabled: Add Node to The Nodes Table.
 				if (node_id != 0 and child_sensor_id == 255 and message_type == 0 and sub_type == 18):
@@ -221,34 +203,6 @@ while 1:
 						print "1-B: Node ID:",node_id," Already Exist In Node Table, Updating MS Version \n\n"
 						cur.execute('UPDATE nodes SET ms_version = %s where node_id = %s', (payload, node_id))
 						con.commit()
-<<<<<<< HEAD
-				
-
-				# ..::Step Two ::..
-				# Add Nodes Name i.e. Relay, Temperature Sensor etc. to Nodes Table.
-				if (child_sensor_id == 255 and message_type == 3 and sub_type == 11):
-					#payload = payload[:-1] # remove \n from payload otherwise you will endup two lines sensors name in database. 
-					print "2: Update Node Record for Node ID:", node_id, " Sensor Type:", payload, "\n\n"
-					cur.execute('UPDATE nodes SET name = %s where node_id = %s', (payload, node_id))
-					con.commit()
-
-				# ..::Step Three ::..
-				# Add Nodes Sketch Version to Nodes Table.  
-				if (node_id != 0 and child_sensor_id == 255 and message_type == 3 and sub_type == 12):
-					#payload = payload[:-1] # remove \n from payload otherwise you will endup two lines sensors name in database. 
-					print "3: Update Node ID: ", node_id, " Node Sketch Version: ", payload, "\n\n"
-					cur.execute('UPDATE nodes SET sketch_version = %s where node_id = %s', (payload, node_id))
-					con.commit()
-					
-				# ..::Step Four::..
-				# Add Node Child ID to Node Table
-				#25;0;0;0;6;
-				if (node_id != 0 and child_sensor_id != 255 and message_type == 0 and sub_type == 6):
-					print "4: Adding Node's Child ID for Node ID:", node_id, " Child Sensor ID:", child_sensor_id, "\n\n"
-					cur.execute('UPDATE nodes SET child_id_1 = %s WHERE node_id = %s', [child_sensor_id, node_id])
-					con.commit()
-
-=======
 
 				# ..::Step Two ::..
 				# Add Nodes Name i.e. Relay, Temperature Sensor etc. to Nodes Table.
@@ -272,7 +226,6 @@ while 1:
 					cur.execute('UPDATE nodes SET child_id_1 = %s WHERE node_id = %s', [child_sensor_id, node_id])
 					con.commit()
 
->>>>>>> upstream/master
 				# ..::Step Five::..
 				# Add Temperature Reading to database 
 				if (node_id != 0 and child_sensor_id != 255 and message_type == 1 and sub_type == 0):
@@ -281,15 +234,12 @@ while 1:
 					con.commit()
 					cur.execute('UPDATE `nodes` SET `last_seen`=now(), `sync`=0  WHERE node_id = %s', [node_id])
 					con.commit()
-<<<<<<< HEAD
 					# if node is water tank temp sensor, update shower time
 					if (int(len(str(abs(node_id)))) == 3 and int(str(node_id)[1]) == 3):
 						print "   Updating Hot Water Tank temperature \n\n"
 						shower_time = tank_size / (( water_flow * shower_temp - cold_water_temp * water_flow ) / ( float(payload) - cold_water_temp ))
 						cur.execute('UPDATE `hot_water_tank` SET `shower_time` = %s WHERE node_id = %s', [shower_time, node_id])
 						con.commit()
-=======
->>>>>>> upstream/master
 
 				# ..::Step Six::..
 				# Add Battery Voltage Nodes Battery Table
@@ -333,7 +283,6 @@ while 1:
 					con.commit()
 				#else: 
 					#print bc.WARN+ "No Action Defined Incomming Node Message Ignored \n\n" +bc.ENDC
-<<<<<<< HEAD
 				
 				# ..::Step Ten::..
 				# When Gateway Startup Completes
@@ -352,26 +301,6 @@ while 1:
 					cur.execute(ntime, (nowtime, '0', node_id, child_sensor_id,))
 					con.commit()
 				
-=======
-				
-				# ..::Step Ten::..
-				# When Gateway Startup Completes
-				if (node_id == 0 and child_sensor_id == 255 and message_type == 0 and sub_type == 18):
-					print "10: PiHome MySensors Gateway Version :", payload, "\n\n"
-					cur.execute('UPDATE gateway SET version = %s', [payload])
-					con.commit()
-					
-				# ..::Step Eleven::.. 40;0;3;0;1;02:27 
-				# When client is requesting time
-				if (node_id != 0 and child_sensor_id == 255 and message_type == 3 and sub_type == 1):
-					print "11: Node ID: ",node_id," Requested Time \n"
-					#nowtime = time.ctime()
-					nowtime = time.strftime('%H:%M')
-					ntime = "UPDATE messages_out SET payload=%s, sent=%s WHERE node_id=%s AND child_id = %s"
-					cur.execute(ntime, (nowtime, '0', node_id, child_sensor_id,))
-					con.commit()
-				
->>>>>>> upstream/master
 				# ..::Step Twelve::.. 40;0;3;0;1;02:27 
 				# When client is requesting text
 				if (node_id != 0 and message_type == 2 and sub_type == 47):
@@ -382,20 +311,9 @@ while 1:
 					#con.commit()
 
 			except mdb.Error, e:
-<<<<<<< HEAD
-				print "Error %d: %s" % (e.args[0], e.args[1])
-				sys.exit(1)
-			finally:
-				if con:
-					con.close()
-		else:
-			print "Bad Statement Received. Ignoring!!!"
-			
-=======
 					print "Error %d: %s" % (e.args[0], e.args[1])
 					sys.exit(1)
 			finally:
 				if con:
 					con.close()
->>>>>>> upstream/master
 	time.sleep(1)
