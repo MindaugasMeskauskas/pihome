@@ -60,6 +60,25 @@ try:
 	row = cur.fetchone();
 	gatewaysp=row[5]
 	gatewayspeed=row[6]
+	
+	cur.execute('SELECT * FROM `hot_water_tank` WHERE status = 1 order by id asc limit 1')
+	item = cur.fetchone();
+	#id = int(item[0]) 
+	#sync = int(item[1]) 
+	#purge = int(item[2]) 
+	#status = int(item[3]) 
+	#fired_status = int(item[4]) 
+	#name = int(item[5]) 
+	#node_id = int(item[6]) 
+	#node_child_id = int(item[7]) 
+	#hysteresis_time = int(item[8]) 
+	#max_operation_time = int(item[9]) 
+	tank_size = int(item[10]) 
+	water_flow = int(item[11]) 
+	shower_temp = int(item[12]) 
+	cold_water_temp = int(item[13]) 
+	#shower_time = int(item[14]) 
+	#gpio_pin = int(item[15]) 
 
 	# ps. you can troubleshoot with "screen" 
 	# screen /dev/ttyAMA0 115200

@@ -26,8 +26,8 @@ ini_set('max_execution_time', 40);
 $date_time = date('Y-m-d H:i:s');
 
 //GPIO Value for SainSmart Relay Board to turn on  or off
-$relay_on = '0'; //GPIO value to write to turn on attached relay
-$relay_off = '1'; // GPIO value to write to turn off attached relay
+$relay_on = '1'; //GPIO value to write to turn on attached relay
+$relay_off = '0'; // GPIO value to write to turn off attached relay
 
 echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - Boiler Script Started \n";
 
@@ -270,7 +270,7 @@ while ($row = mysqli_fetch_assoc($results)) {
       $now=strtotime(date('Y-m-d H:i:s'));
       $sensor_seen_time = strtotime($temp_reading_time); //using time from messages_in
       if ($sensor_seen_time  < ($now - ($sensor_notice*60))){
-          $zone_fault = 1;
+          $zone_fault = 0;
           echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - Temperature sensor communication timeout for This Zone. Last temperature reading: ".$temp_reading_time."\n";
       }
 	}
