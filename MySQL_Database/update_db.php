@@ -13,15 +13,14 @@ echo "     \033[45m S M A R T   H E A T I N G   C O N T R O L \033[0m \n";
 echo "\033[31m";
 echo "***************************************************************\n";
 echo "*   PiHome Datase Script Version 0.01 Build Date 15/09/2019   *\n";
-echo "*   Last Modified on 16/09/2019                               *\n";
+echo "*   Last Modified on 27/01/2020                               *\n";
 echo "*                                      Have Fun - PiHome.eu   *\n";
 echo "***************************************************************\n";
 echo "\033[0m";
 echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - PiHome Database Update Script Started \n"; 
 $line = "--------------------------------------------------------------- \n";
 
-
-require_once(__DIR__.'../st_inc/dbStruct.php');
+require_once(__DIR__.'/../st_inc/dbStruct.php');
 //Set php script execution time in seconds
 ini_set('max_execution_time', 400); 
 $date_time = date('Y-m-d H:i:s');
@@ -56,7 +55,6 @@ if ($conn->connect_error){
 }else {
 	echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - Database Server Connection Successfull \n";
 }
-
 echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - Checking if Database Exits \n";
 $db_selected = mysqli_select_db($conn, $dbname);
 if ($db_selected) {
@@ -72,10 +70,8 @@ if ($db_selected) {
 	}
 	//dump the databse with no data or views or triggers
 	exec("mysqldump -d -u root --password=\"$dbpassword\" $dbname --skip-triggers ".implode(" ",$views), $struct1);
-
 	//create an image of the latest database from GITHUB
 	$struct2 = file_get_contents('https://raw.githubusercontent.com/pihome-shc/pihome/master/MySQL_Database/pihome_mysql_database.sql');
-
 	//create an array of SQL commands to transform the structure of the currently installed database to match the GITHUB image
 	$updater = new dbStructUpdater();
 	$res = $updater->getUpdates(implode("\n",$struct1), $struct2);
@@ -102,7 +98,6 @@ if ($db_selected) {
     			exit;
 		}
 		fclose($handle); 
-
                 //dump all mysql database and save as sql file
                 echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - Creating Dump File for Exiting Database. \n";
                 $dumpfname = $dbname . "_" . date("Y-m-d_H-i-s").".sql";
@@ -152,15 +147,48 @@ if ($db_selected) {
 					$templine = '';
 				}
 		}
-                $query = "UPDATE system SET version = '{$ver}', build = '{$build}' LIMIT 1;";
-                $conn->query($query);
+                //$query = "UPDATE system SET version = '{$ver}', build = '{$build}' LIMIT 1;";
+                //$conn->query($query);
 
-                echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - Database Updates Applied \n";
-		echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - Update Version: ".$ver."\n";
-		echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - Update Build: ".$build."\n";
+		echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - Database Updates Applied \n";
+		//echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - Update Version: \033[41m".$ver."\033[0m \n";
+		//echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - Update Build: \033[41m".$build."\033[0m \n";
 	} else {
-                echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - NO Database Updates Found \n";
+		echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - NO Database Updates Found \n";
 	}
+	//Table View 
+	echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - Importing SQL Table View File to Database, This could take few minuts.  \n";
+	// Name of the file
+	$tableviewfilename = __DIR__.'/MySQL_View.sql';
+	// Select database
+	mysqli_select_db($conn, $dbname) or die('Error Selecting MySQL Database: ' . mysqli_error($conn));
+	// Temporary variable, used to store current query
+	$viewtempline = '';
+	// Read in entire file
+	$viewlines = file($tableviewfilename);
+	// Loop through each line
+	foreach ($viewlines as $viewline){
+	// Skip it if it's a comment
+		if (substr($viewline, 0, 2) == '--' || $viewline == '')
+			continue;
+			// Add this line to the current segment
+			$viewtempline .= $viewline;
+			// If it has a semicolon at the end, it's the end of the query
+			if (substr(trim($viewline), -1, 1) == ';'){
+				// Perform the query
+				$conn->query($viewtempline) or print("MySQL Database Error with Query ".$viewtempline.":". mysqli_error($conn)."\n");
+				//mysqli_query($viewtempline) or print("MySQL Database Error with Query ".$viewtempline.":". mysqli_error($conn)."\n");
+				// Reset temp variable to empty
+				$viewtempline = '';
+			}
+	}
+	echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - DataBase File \033[41m".$tableviewfilename."\033[0m Imported Successfully \n";
+	
+	$query = "UPDATE system SET version = '{$ver}', build = '{$build}' LIMIT 1;";
+	$conn->query($query);
+	echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - Update Version: \033[41m".$ver."\033[0m \n";
+	echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - Update Build: \033[41m".$build."\033[0m \n";
+		
 } else {
         	echo "\033[36m".date('Y-m-d H:i:s'). "\033[0m - Database ".$dbname." Not Found \n";
 	}

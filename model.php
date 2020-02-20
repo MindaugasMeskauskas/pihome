@@ -148,7 +148,8 @@ echo '
 				<select class="form-control input-sm" type="text" id="new_lang" name="new_lang">
 				<option value="en" ' . ($language=='en' ? 'selected' : '') . '>'.$lang['lang_en'].'</option>
 				<option value="pt" ' . ($language=='pt' ? 'selected' : '') . '>'.$lang['lang_pt'].'</option>
-				<option value="pt" ' . ($language=='fr' ? 'selected' : '') . '>'.$lang['lang_fr'].'</option>
+				<option value="fr" ' . ($language=='fr' ? 'selected' : '') . '>'.$lang['lang_fr'].'</option>
+				<option value="ro" ' . ($language=='ro' ? 'selected' : '') . '>'.$lang['lang_ro'].'</option>
 				</select>
                 <div class="help-block with-errors"></div></div>
             </div>
@@ -209,7 +210,7 @@ echo '<p class="text-muted">'.$lang['boiler_info_text'].'</p>';
 
 echo '
 	<form data-toggle="validator" role="form" method="post" action="settings.php" id="form-join">
-	
+
 	<div class="form-group" class="control-label">
 	<div class="checkbox checkbox-default checkbox-circle">';
 	if ($brow['status'] == '1'){
@@ -218,73 +219,46 @@ echo '
 		echo '<input id="checkbox2" class="styled" type="checkbox" value="1" name="status" Disabled>';
 	}
 	echo '<label for="checkbox2"> '.$lang['boiler_enable'].'</label></div></div>
-	
+
 	<div class="form-group" class="control-label"><label>'.$lang['boiler_name'].'</label>
 	<input class="form-control input-sm" type="text" id="name" name="name" value="'.$brow['name'].'" placeholder="Boiler Name to Display on Screen ">
 	<div class="help-block with-errors"></div></div>
 
 	<div class="form-group" class="control-label"><label>'.$lang['boiler_node_id'].'</label> <small class="text-muted">'.$lang['boiler_node_id_info'].'</small>
-	<select class="form-control input-sm" type="text" id="node_id" name="node_id">';
+	<select class="form-control input-sm" type="text" id="node_id" name="node_id" onchange=BoilerChildList(this.options[this.selectedIndex].value)>';
 	//get current node_id from nodes table 
 	$query = "SELECT * FROM nodes WHERE id ='".$brow['node_id']."' Limit 1;";
 	$result = $conn->query($query);
 	$row = mysqli_fetch_assoc($result);
 	$node_id=$row['node_id'];
-	$notice_interval=$row['notice_interval'];
-	
-	echo '<option value="'.$node_id.'" selected>'.($node_id=='0' ? 'N/A' : $node_id).'</option>';
-	
+        $node_type=$row['type'];
+	$max_child_id=$row['max_child_id'];
+
+	echo '<option value="'.$node_id.'" selected>'.$node_type.' - '.$node_id.'</option>';
+	echo "<option></option>";
 	//get list from nodes table to display 
-	$query = "SELECT * FROM nodes where CHAR_LENGTH(node_id) = 3 and SUBSTRING(node_id, 1,1) = 2;";
+	$query = "SELECT * FROM nodes where name = 'Boiler Relay' OR name = 'Boiler Controller' OR name = 'GPIO Controller' OR name = 'I2C Controller';";
 	$result = $conn->query($query);
 	if ($result){
 		while ($nrow=mysqli_fetch_array($result)) {
-			echo '<option value="'.$nrow['node_id'].'">'.$nrow['node_id'].'</option>';
+			echo '<option value="'.$nrow['max_child_id'].'">'.$nrow['type'].' - '.$nrow['node_id'].'</option>';
 		}
 	}
-	echo '<option value="0">N/A</option>
-	</select>
+	echo '</select>
     <div class="help-block with-errors"></div></div>';
-	
+
 	echo '
-	<div class="form-group" class="control-label"><label>'.$lang['boiler_node_child_id'].'</label>
+	<input class="form-control input-sm" type="hidden" id="selected_node_id" name="selected_node_id" value="'.$node_id.'"/>
+	<div class="form-group" class="control-label"><label>'.$lang['boiler_node_child_id'].'</label> <small class="text-muted">'.$lang['boiler_relay_gpio_text'].'</small>
 	<select class="form-control input-sm" type="text" id="node_child_id" name="node_child_id">
-	<option selected>'.$brow['node_child_id'].'</option>
-	<option value="0">0</option>
-	<option value="1">1</option>
-	<option value="2">2</option>
-	<option value="3">3</option>
-	<option value="4">4</option>
-	<option value="5">5</option>
-	<option value="6">6</option>
-	<option value="7">7</option>
-	<option value="8">8</option>
+	<option selected>'.$brow['node_child_id'].'</option>';
+	for ($x = 1; $x <=  $max_child_id; $x++) {
+        	echo '<option value="'.$x.'">'.$x.'</option>';
+	}
+	echo '
 	</select>
     <div class="help-block with-errors"></div></div>
 	
-	<div class="form-group" class="control-label"><label>'.$lang['boiler_relay_gpio'].'</label> <small class="text-muted">'.$lang['boiler_relay_gpio_text'].'</small>
-	<select id="gpio_pin" name="gpio_pin" class="form-control select2" autocomplete="off" required>
-	<option value="'.$brow['gpio_pin'].'" selected>'.($brow['gpio_pin']=='0' ? 'N/A' : $brow['gpio_pin']).'</option>
-	<option value="0">N/A</option>
-	<option value="1">1</option>
-	<option value="2">2</option>
-	<option value="3">3</option>
-	<option value="4">4</option>
-	<option value="5">5</option>
-	<option value="6">6</option>
-	<option value="7">7</option>
-	<option value="21">21</option>
-	<option value="22">22</option>
-	<option value="23">23</option>
-	<option value="24">24</option>
-	<option value="25">25</option>
-	<option value="26">26</option>
-	<option value="27">27</option>
-	<option value="28">28</option>
-	<option value="29">29</option>
-	</select>				
-	<div class="help-block with-errors"></div></div>
-
 	<div class="form-group" class="control-label"><label>'.$lang['boiler_hysteresis_time'].'</label> <small class="text-muted">'.$lang['boiler_hysteresis_time_info'].'</small>
 	<select class="form-control input-sm" type="text" id="hysteresis_time" name="hysteresis_time">
 	<option selected>'.$brow['hysteresis_time'].'</option>
@@ -297,6 +271,9 @@ echo '
 	<option value="6">6</option>
 	<option value="7">7</option>
 	<option value="8">8</option>
+	<option value="9">9</option>
+	<option value="10">10</option>
+	<option value="15">15</option>
 	</select>
     <div class="help-block with-errors"></div></div>
 
@@ -318,23 +295,10 @@ echo '
 	<option value="100">100</option>
 	<option value="110">110</option>
 	<option value="120">120</option>
+	<option value="180">180</option>
 	</select>
     <div class="help-block with-errors"></div></div>
-	
-	<div class="form-group" class="control-label"><label>'.$lang['notice_interval'].'</label> <small class="text-muted">'.$lang['notice_interval_info'].'</small>
-	<select class="form-control input-sm" type="text" id="notice_interval" name="notice_interval">
-	<option selected>'.$notice_interval.'</option>
-	<option value="0">0</option>
-	<option value="5">5</option>
-	<option value="7">7</option>
-	<option value="9">9</option>
-	<option value="11">11</option>
-	<option value="13">13</option>
-	<option value="15">15</option>
-	<option value="17">17</option>
-	<option value="19">19</option>
-	</select>
-    <div class="help-block with-errors"></div></div>
+
 	';
 
 	echo '</div>
@@ -359,7 +323,7 @@ echo '
             <div class="modal-body">
 <p class="text-muted"> '.$lang['boost_settings_text'].' </p>';
 $query = "SELECT boost.id, boost.status, boost.sync, boost.zone_id, zone_idx.index_id, zone.name, boost.temperature, boost.minute, boost.boost_button_id, boost.boost_button_child_id ";
-$query = $query."FROM boost JOIN zone ON boost.zone_id = zone.id JOIN zone zone_idx ON boost.zone_id = zone_idx.id ORDER BY zone.index_id ASC, boost.minute ASC;";
+$query = $query."FROM boost JOIN zone ON boost.zone_id = zone.id JOIN zone zone_idx ON boost.zone_id = zone_idx.id WHERE boost.`purge`= '0' ORDER BY zone.index_id ASC, boost.minute ASC;";
 $results = $conn->query($query);
 echo '<table class="table table-bordered">
     <tr>
@@ -532,6 +496,111 @@ echo '</div></div>
     </div>
 </div>';
 
+
+//nodes model
+echo '
+<div class="modal fade" id="nodes" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+                <h5 class="modal-title">'.$lang['node_setting'].'</h5>
+            </div>
+            <div class="modal-body">
+<p class="text-muted"> '.$lang['node_settings_text'].' </p>';
+
+$query = "SELECT * FROM nodes where type !='MySensor';";
+$results = $conn->query($query);
+echo '<table class="table table-bordered">
+    <tr>
+        <th class="col-xs-2"><small>'.$lang['type'].'</small></th>
+        <th class="col-xs-2"><small>'.$lang['node_id'].'</small></th>
+        <th class="col-xs-2"><small>'.$lang['max_child'].'</small></th>
+        <th class="col-xs-4"><small>'.$lang['name'].'</small></th>
+        <th class="col-xs-1"></th>
+    </tr>';
+while ($row = mysqli_fetch_assoc($results)) {
+    if($row["name"]=="Boiler Controller" or $row["name"]=="GPIO Controller" or $row["name"]=="I2C Controller") {
+        $query = "SELECT * FROM boiler where node_id = {$row['id']} LIMIT 1;";
+        $b_results = $conn->query($query);
+        $rowcount=mysqli_num_rows($b_results);
+        if($rowcount > 0) {
+                $content_msg="You are about to DELETE an ACTIVE Controller";
+        } else {
+                $content_msg="You are about to DELETE a NONE active Controller";
+        }
+
+    } else {
+        $query = "SELECT * FROM zone where controler_id = {$row['id']} LIMIT 1;";
+        $z_results = $conn->query($query);
+        $rowcount=mysqli_num_rows($z_results);
+        if($rowcount > 0) {
+                $z_row = mysqli_fetch_assoc($z_results);
+                $content_msg="You are about to DELETE an ACTIVE Controller for ".$z_row["name"]." Zone";
+        } else {
+                $content_msg="You are about to DELETE a NONE active Controller";
+        }
+    }
+    echo '
+        <tr>
+            <td>'.$row["type"].'</td>
+            <td>'.$row["node_id"].'</td>
+            <td>'.$row["max_child_id"].'</td>
+            <td>'.$row["name"].'</td>
+			<td><a href="javascript:delete_node('.$row["id"].');"><button class="btn btn-danger btn-xs" data-toggle="confirmation" data-title="ARE YOU SURE?" data-content="'.$content_msg.'"><span class="glyphicon glyphicon-trash"></span></button> </a></td>
+        </tr>';
+}
+echo '</table></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary btn-sm" data-dismiss="modal">'.$lang['close'].'</button>
+                <button type="button" class="btn btn-default login btn-sm" data-href="#" data-toggle="modal" data-target="#add_node">'.$lang['node_add'].'</button>
+            </div>
+        </div>
+    </div>
+</div>';
+
+
+//Add Node
+echo '
+<div class="modal fade" id="add_node" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+                <h5 class="modal-title">'.$lang['node_add'].'</h5>
+            </div>
+            <div class="modal-body">';
+echo '<p class="text-muted">'.$lang['node_add_info_text'].'</p>
+	
+	<form data-toggle="validator" role="form" method="post" action="settings.php" id="form-join">
+
+	<div class="form-group" class="control-label"><label>'.$lang['node_type'].'</label> <small class="text-muted">'.$lang['node_type_info'].'</small>
+
+	<select class="form-control input-sm" type="text" id="node_type" name="node_type">
+	<option value="GPIO">GPIO</option>
+	<option value="I2C">I2C</option>
+	</select>
+    <div class="help-block with-errors"></div></div>
+
+
+	<div class="form-group" class="control-label"><label>'.$lang['node_id'].'</label> <small class="text-muted">'.$lang['node_id_info'].'</small>
+	<input class="form-control input-sm" type="text" id="add_node_id" name="add_node_id" value="" placeholder="'.$lang['node_id'].'">
+	<div class="help-block with-errors"></div></div>
+		
+	<div class="form-group" class="control-label"><label>'.$lang['node_child_id'].'</label> <small class="text-muted">'.$lang['node_child_id_info'].'</small>
+	<input class="form-control input-sm" type="text" id="nodes_max_child_id" name="nodes_max_child_id" value="" placeholder="'.$lang['node_max_child_id'].'">
+	<div class="help-block with-errors"></div></div>
+
+</div>
+            <div class="modal-footer">
+				<button type="button" class="btn btn-primary btn-sm" data-dismiss="modal">'.$lang['close'].'</button>
+				<input type="button" name="submit" value="Save" class="btn btn-default login btn-sm" onclick="add_node()">
+				
+            </div>
+        </div>
+    </div>
+</div>';
+
 //Sensor location model
 echo '
 <div class="modal fade" id="temperature_sensor" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -582,27 +651,15 @@ $query = "select * from zone_view order by index_id asc";
 $results = $conn->query($query);
 echo '	<div class=\"list-group\">';
 while ($row = mysqli_fetch_assoc($results)) {
-	if ($row['gpio_pin'] == 0){
-		echo "<div class=\"list-group-item\">
-		<i class=\"glyphicon glyphicon-th-large orange\"></i> ".$row['name']."
-		<span class=\"pull-right \"><em>&nbsp;&nbsp;<small> ".$lang['max']." ".$row['max_c']."&deg; </em> - ".$lang['sensor'].": ".$row['sensors_id']." - ".$lang['ctr'].": ".$row['controler_id']."-".$row['controler_child_id']."</small></span> 
-		<br><span class=\"pull-right \"><small>
-		<a href=\"zone_add.php?id=".$row['id']."\" class=\"btn btn-default btn-xs login\"><span class=\"ionicons ion-edit\"></span></a>&nbsp;&nbsp;
-		<a href=\"javascript:delete_zone(".$row['id'].");\"><button class=\"btn btn-danger btn-xs\"><span class=\"glyphicon glyphicon-trash\"></span></button></a>
-		</small></span>
-		<br>
-		</div>";
-	} else {
-		echo "<div class=\"list-group-item\">
-		<i class=\"glyphicon glyphicon-th-large orange\"></i> ".$row['name']."
-		<span class=\"pull-right \"><em>&nbsp;&nbsp;<small> ".$lang['max']." ".$row['max_c']."&deg; </em> - ".$lang['sensor'].": ".$row['sensors_id']." - GPIO: ".$row['gpio_pin']."</small></span>
-		<br><span class=\"pull-right \"><small>
-		<a href=\"zone_add.php?id=".$row['id']."\" class=\"btn btn-default btn-xs login\"><span class=\"ionicons ion-edit\"></span></a>&nbsp;&nbsp;
-		<a href=\"javascript:delete_zone(".$row['id'].");\"><button class=\"btn btn-danger btn-xs\"><span class=\"glyphicon glyphicon-trash\"></span></button></a>
-		</small></span>
-		<br>
-		</div>";
-	}
+	echo "<div class=\"list-group-item\">
+	<i class=\"glyphicon glyphicon-th-large orange\"></i> ".$row['name']."
+	<span class=\"pull-right \"><em>&nbsp;&nbsp;<small> ".$lang['max']." ".$row['max_c']."&deg; </em> - ".$lang['sensor'].": ".$row['sensors_id']." - ".$row['controller_type'].": ".$row['controler_id']."-".$row['controler_child_id']."</small></span> 
+	<br><span class=\"pull-right \"><small>
+	<a href=\"zone_add.php?id=".$row['id']."\" class=\"btn btn-default btn-xs login\"><span class=\"ionicons ion-edit\"></span></a>&nbsp;&nbsp;
+	<a href=\"javascript:delete_zone(".$row['id'].");\"><button class=\"btn btn-danger btn-xs\"><span class=\"glyphicon glyphicon-trash\"></span></button></a>
+	</small></span>
+	<br>
+	</div>";
 }
 echo '
 </div></div>
@@ -664,7 +721,7 @@ echo '
 	<div class="help-block with-errors"></div></div>
 
 	<div class="form-group" class="control-label"><label>'.$lang['smart_home_gateway_version'].' </label>
-	<input class="form-control input-sm" type="text" id="gw_timout" name="gw_timout" value="'.$grow['version'].'" disabled>
+	<input class="form-control input-sm" type="text" id="gw_version" name="gw_version" value="'.$grow['version'].'" disabled>
 	<div class="help-block with-errors"></div></div>
 	
 <br><h4 class="info"><i class="fa fa-heartbeat red"></i> '.$lang['smart_home_gateway_scr_info'].'</h4>
@@ -715,9 +772,9 @@ echo '
 	<div class="form-group" class="control-label">
 	<div class="checkbox checkbox-default checkbox-circle">';
 	if ($erow['status'] == '1'){
-		echo '<input id="checkbox2" class="styled" type="checkbox" value="1" name="status" checked>';
+		echo '<input id="checkbox3" class="styled" type="checkbox" value="1" name="status" checked>';
 	}else {
-		echo '<input id="checkbox2" class="styled" type="checkbox" value="1" name="status">';
+		echo '<input id="checkbox3" class="styled" type="checkbox" value="1" name="status">';
 	}
 echo ' 
 
@@ -764,12 +821,13 @@ echo '
             </div>
             <div class="modal-body">
 <p class="text-muted"> '.$lang['node_alerts_edit_info'].' </p>';
-$query = "SELECT * FROM nodes where node_id != 0 AND status = 'Active' ORDER BY node_id asc";
+$query = "SELECT * FROM nodes where status = 'Active' ORDER BY node_id asc";
 $results = $conn->query($query);
 echo '<table>
     <tr>
         <th class="col-xs-1">'.$lang['node_id'].'</th>
-        <th class="col-xs-4">'.$lang['name'].'</th>
+        <th class="col-xs-3">'.$lang['name'].'</th>
+        <th class="col-xs-4">'.$lang['last_seen'].'</th>
         <th class="col-xs-5">'.$lang['notice_interval'].'
 	<span class="fa fa-info-circle fa-lg text-info" data-container="body" data-toggle="popover" data-placement="left" data-content="'.$lang['notice_interval_info'].'"</span>
 	</th>
@@ -795,7 +853,7 @@ echo '</table></div>
     </div>
 </div>';
 
-//cronetab model	
+//cronetab model
 echo '
 <div class="modal fade" id="cron_jobs" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -805,18 +863,85 @@ echo '
                 <h5 class="modal-title">'.$lang['cron_jobs'].'</h5>
             </div>
             <div class="modal-body">
-<p class="text-muted"> '.$lang['cron_jobs_text'].' </p>';
+<p class="text-muted">'.$lang['cron_jobs_text'].'</p>';
 echo '	<div class=\"list-group\">';
-//exec ("crontab -l >/var/www/cronjob.txt"); this didnt work need to investigate 
-$file_handle = fopen("/var/www/cronjob.txt", "r");
-while ($file_handle && !feof($file_handle)) {
-	$line = fgets($file_handle);
-	echo "<a href=\"#\" class=\"list-group-item\">
-    <i class=\"ionicons ion-ios-timer-outline red\"></i> ".$line."
-    <span class=\"pull-right text-muted small\"><em></em></span>
-    </a>";
-}
-fclose($file_handle);
+    $SArr=[['name'=>'Boiler','interval'=>'60','service'=>'/var/www/cron/boiler.php'],
+           ['name'=>'DB Cleanup','interval'=>'86400','service'=>'/var/www/cron/db_cleanup.php'],
+           ['name'=>'Check Gateway','interval'=>'60','service'=>'/var/www/cron/check_gw.php'],
+           ['name'=>'Weather Update','interval'=>'1800','service'=>'/var/www/cron/weather_update.php'],
+		   ['name'=>'System Temperature','interval'=>'300','service'=>'/var/www/cron/system_c.php'],
+           ['name'=>'Reboot WiFi','interval'=>'120','service'=>'/var/www/cron/reboot_wifi.sh'],
+           ['name'=>'PI Connect','interval'=>'60','service'=>'/var/www/cron/piconnect.php']];
+    foreach($SArr as $SArrKey=>$SArrVal) {
+		// Get last cron job entry from syslogs
+		$rval=my_exec("grep -a \"".$SArrVal['service']."\" /var/log/syslog | tail -n 1");
+		// If no log entry found in syslogs and no error, check in log rotating file syslog.1
+		if($rval['stdout']=='' && $rval['stderr']==''){
+			$rval=my_exec("grep -a \"".$SArrVal['service']."\" /var/log/syslog.1 | tail -n 1");
+		}
+		$logDateLabel='';
+		$errLabel='';
+		$errMsg='';
+		$statusIcon='ion-alert-circled red';
+		// Check for possible issues reading logs
+        if($rval['stdout']=='') {
+            $errLabel='Error: ' . $rval['stderr'];
+			if($rval['stderr']=='') {
+				$errLabel='Error: No log entries.';
+				$errMsg='Logs don\'t contain any entries for CRON job ( ' . $SArrVal['service'].' ). Make sure you have executed ( sudo php /var/www/setup.php ) or CRON jobs are set to be logged in /var/logs/syslog.';
+			} elseif (strstr($rval['stderr'],'Permission denied')) {
+				$errLabel='Error: Permission denied.';
+				$errMsg = $rval['stderr'].'. This function requires read access to syslogs. Please set permission to read for others for syslog and syslog.1 files, e.g.: sudo chmod 644 /var/log/syslog';
+			} else {
+				$errLabel='Error.';
+				$errMsg = $rval['stderr'];
+			}
+        } else { // Log entry found
+			// Split log entry to array
+            $rval=explode(" ",$rval['stdout']);
+			
+			// Get correct year of log entry
+			if ($rval[0]=='Dec' && date('M')=='Jan'){
+				$logYear=date('Y')-1;
+			}else{
+				$logYear=date('Y');
+			}
+			
+			// Log DateTime
+                        if($rval[1]=='') {
+                                $logDateLabel= $rval[2]." ".$rval[0]." ".$rval[3];
+                                $logDateObj = DateTime::createFromFormat('YMdH:i:s', $logYear.$rval[0].$rval[2].$rval[3]);
+                        } else {
+                                $logDateLabel= $rval[1]." ".$rval[0]." ".$rval[2];
+                                $logDateObj = DateTime::createFromFormat('YMdH:i:s', $logYear.$rval[0].$rval[1].$rval[2]);
+                        }
+			$logDate = $logDateObj->format("Y/m/d H:i:s");
+			
+			// Current DateTime
+			$currDateObj = new DateTime();
+			$currDate = $currDateObj->format("Y/m/d H:i:s");
+			$currDateObj->sub(new DateInterval('PT'.$SArrVal['interval'].'S')); // Subtract cron job interval for comparison
+			
+			// Check if Log entry is older that current date minus interval
+			if ($logDateObj>=$currDateObj) {
+				$statusIcon='ion-checkmark-circled green';
+			} else {
+				$errLabel='Error: Delay in run time.';
+				$errMsg=$SArrVal['name'].' cron job last ran on '.$logDate.', current datetime '.$currDate.', duration between is more than expected interval of '.$SArrVal['interval'].' seconds.';
+			}
+        }
+		
+		echo "<a href=\"#\" class=\"list-group-item\">
+			<i class=\"ionicons ".$statusIcon."\"></i>  ".$SArrVal['name']."<span class=\"pull-right text-muted small\"><em>Interval in seconds: ".$SArrVal['interval']."</em></span>
+			<span class=\"center-block text-muted small\"><em>  Last run time: ".$logDateLabel."</em>
+			<div class=\"pull-right text-muted small\"><em>".$errLabel."</em></div>";
+		if($errLabel!=''){ // If error exist, display icon for popup notification.
+			echo "
+			<span class=\"pull-right fa fa-info-circle fa-lg text-info\" data-container=\"body\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"".$errMsg."\"</span>";
+		}
+		echo "</span>
+			</a>";
+    }
 echo ' </div></div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary btn-sm" data-dismiss="modal">'.$lang['close'].'</button>
@@ -910,12 +1035,17 @@ echo '
             </div>
             <div class="modal-body">
 			<p class="text-muted"> '.$lang['pihome_backup_text'].' </p>
-			<i class="fa fa-clone fa-1x blue"></i> '.$lang['pihome_backup'].'
-			';
+			<form data-toggle="validator" role="form" method="post" action="#" id="form-join">
+			<div class="form-group" class="control-label"><label>E-Mail Address</label> <small class="text-muted">'.$lang['pihome_backup_email_info'].'</small>
+			<input class="form-control input-sm" type="text" id="backup_email" name="backup_email" value="'.settings($conn, backup_email).'" placeholder="Email Address to Receive your Backup file">
+			<div class="help-block with-errors"></div>
+			</div>
+			</form>';
 echo '     </div>
             <div class="modal-footer">
 			<button type="button" class="btn btn-primary btn-sm" data-dismiss="modal">'.$lang['close'].'</button>
-			<a href="javascript:db_backup()" class="btn btn-default login btn-sm">'.$lang['start'].'</a>
+			<a href="javascript:backup_email_update()" class="btn btn-default login btn-sm">'.$lang['save'].'</a>
+			<a href="javascript:db_backup()" class="btn btn-default login btn-sm">'.$lang['backup_start'].'</a>
             </div>
         </div>
     </div>
@@ -1115,5 +1245,33 @@ echo '</div></div>
 $(document).ready(function(){
   $('[data-toggle="popover"]').popover();
 });
+
+$('[data-toggle=confirmation]').confirmation({
+  rootSelector: '[data-toggle=confirmation]',
+  container: 'body'
+});
 </script>
+
+<script language="javascript" type="text/javascript">
+function BoilerChildList(value)
+{
+ var valuetext = value;
+ var e = document.getElementById("node_id");
+ var selected_sensor_id = e.options[e.selectedIndex].text;
+ var selected_sensor_id = selected_sensor_id.split(" - ");
+ document.getElementById("selected_node_id").value = selected_sensor_id[1];
+
+ var opt = document.getElementById("node_child_id").getElementsByTagName("option");
+ for(j=opt.length-1;j>=0;j--)
+  {
+  document.getElementById("node_child_id").options.remove(j);
+  }
+ for(j=1;j<=valuetext;j++)
+  {
+  var optn = document.createElement("OPTION");
+  optn.text = j;
+  optn.value = j;
+  document.getElementById("node_child_id").options.add(optn);
+  }}
+ </script>
 

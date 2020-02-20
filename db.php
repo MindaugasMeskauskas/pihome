@@ -176,8 +176,8 @@ if($what=="boost"){
 		//delete from message_out related to this boost. 
 		$query = "DELETE FROM messages_out WHERE node_id = '".$boost_button_id."' AND child_id = '".$boost_button_child_id."' LIMIT 1;"; 
 		$conn->query($query);
-		//Now delete from Boost 
-		$query = "DELETE FROM boost WHERE id = '".$wid."';"; 
+		//Now Mark for deletion from Boost 
+		$query = "UPDATE boost SET `purge` = '1' WHERE id = '".$wid."';"; 
 		$conn->query($query);
 		if($conn->query($query)){
             		header('Content-type: application/json');
@@ -242,7 +242,52 @@ if($what=="boost"){
                 }
         }
 }
-
+//Nodes
+if($what=="node"){
+	if($opp=="delete"){
+                //Get id from nodes table
+                $query = "SELECT * FROM nodes WHERE id = '".$wid."' LIMIT 1";
+                $results = $conn->query($query);
+                $row = mysqli_fetch_assoc($results);
+                if($row['name'] == 'Boiler Controller') {
+                        $query = "UPDATE boiler SET node_id = NULL WHERE node_id = '".$wid."' LIMIT 1";
+                        $conn->query($query);
+                } elseif($row['name'] == 'Zone Controller') {
+                        $query = "UPDATE zone SET controler_id = NULL WHERE  controler_id = '".$wid."' LIMIT 1";
+                        $conn->query($query);
+                }
+		//Now delete from Nodes
+		$query = "DELETE FROM nodes WHERE id = '".$wid."';"; 
+		$conn->query($query);
+		if($conn->query($query)){
+            		header('Content-type: application/json');
+            		echo json_encode(array('Success'=>'Success','Query'=>$query));
+            		return;
+        	}else{
+            		header('Content-type: application/json');
+            		echo json_encode(array('Message'=>'Database query failed.\r\nQuery=' . $query));
+            		return;
+        	}
+	}
+	if($opp=="add"){
+		$node_type = $_GET['node_type'];
+		$node_id = $_GET['add_node_id'];
+		$node_child_id = $_GET['nodes_max_child_id'];
+		$node_name = $_GET['node_name'];
+                $notice_interval = $_GET['notice_interval'];
+		//Add record to Nodes table
+		$query = "INSERT INTO nodes (`sync`, `purge`, `type`, node_id, max_child_id, `name`, `notice_interval`, `status`) VALUES ('0', '0', '{$node_type}', '{$node_id}', '{$node_child_id}', '{$node_name}', '{$notice_interval}', 'Active')";
+		if($conn->query($query)){
+            		header('Content-type: application/json');
+            		echo json_encode(array('Success'=>'Success','Query'=>$query));
+            		return;
+        	}else{
+            		header('Content-type: application/json');
+            		echo json_encode(array('Message'=>'Database query failed.\r\nQuery=' . $query));
+            		return;
+        	}
+	}
+}
 //Away 
 if($what=="away"){
 	if($opp=="active"){
@@ -317,8 +362,6 @@ if($what=="boiler_settings"){
 	$node_child_id = $_GET['node_child_id'];
 	$hysteresis_time = $_GET['hysteresis_time'];
 	$max_operation_time = $_GET['max_operation_time'];
-	$gpio_pin = $_GET['gpio_pin'];
-	$notice_interval = $_GET['notice_interval'];
 	if ($status=='true'){$status = '1';} else {$status = '0';}
 	
 	//Get id from nodes table
@@ -326,10 +369,6 @@ if($what=="boiler_settings"){
 	$results = $conn->query($query);
 	$row = mysqli_fetch_assoc($results);
 	
-	//Update Notice Interval for Boiler Node. 
-	$query = "UPDATE nodes SET notice_interval = '".$notice_interval."' WHERE `id`=".$row['id'].";";
-	$conn->query($query);
-		
 	//Check messages_out for Boiler Node ID
 	$query = "SELECT * FROM messages_out WHERE node_id='".$node_id."' LIMIT 1;";
 	$result = $conn->query($query);
@@ -340,7 +379,7 @@ if($what=="boiler_settings"){
 	}
 
 	//Update Boiler Setting 
-	$query = "UPDATE boiler SET status = '".$status."', name = '".$name."', node_id = '".$row['id']."', node_child_id = '".$node_child_id."', hysteresis_time = '".$hysteresis_time."', max_operation_time = '".$max_operation_time."', gpio_pin = '".$gpio_pin."' where ID = 1;";
+	$query = "UPDATE boiler SET status = '".$status."', name = '".$name."', node_id = '".$row['id']."', node_child_id = '".$node_child_id."', hysteresis_time = '".$hysteresis_time."', max_operation_time = '".$max_operation_time."' where ID = 1;";
 	if($conn->query($query)){
 		header('Content-type: application/json');
 		echo json_encode(array('Success'=>'Success','Query'=>$query));
@@ -467,8 +506,23 @@ if($what=="setup_piconnect"){
 
 //Database Backup
 if($what=="db_backup"){
-	 shell_exec("php start_backup.php"); 
+	shell_exec("nohup php start_backup.php >/dev/null 2>&1"); 
 	$info_message = "Data Base Backup Request Started, This process may take some time complete..." ;
+}
+
+//Setup Backup e-mail
+if($what=="backup_email_update"){
+	$backup_email = $_GET['backup_email'];
+	$query = "UPDATE system SET backup_email = '".$backup_email."';";
+	if($conn->query($query)){
+		header('Content-type: application/json');
+		echo json_encode(array('Success'=>'Success','Query'=>$query));
+		return;
+	}else{
+		header('Content-type: application/json');
+		echo json_encode(array('Message'=>'Database query failed.\r\nQuery=' . $query));
+		return;
+	}
 }
 
 //Reboot System
@@ -581,7 +635,7 @@ if($what=="setup_email"){
 		//Update Exiting Record
 		$row = mysqli_fetch_assoc($result);
 		$e_id= $row['id'];
-		$query = "inset email SET smtp = '".$e_smtp."', username = '".$e_username."', password = '".$e_password."', `from` = '".$e_from_address."', `to` = '".$e_to_address."', status = '".$status."' where ID = '".$e_id."';";
+		$query = "Update email SET smtp = '".$e_smtp."', username = '".$e_username."', password = '".$e_password."', `from` = '".$e_from_address."', `to` = '".$e_to_address."', status = '".$status."' where ID = '".$e_id."';";
 		if($conn->query($query)){
 			header('Content-type: application/json');
 			echo json_encode(array('Success'=>'Success','Query'=>$query));
@@ -622,7 +676,7 @@ if($what=="setup_graph"){
 
 //update Node Alerts Notice Interval
 if($what=="node_alerts"){
-        $sel_query = "SELECT * FROM nodes where node_id != 0 AND status = 'Active' ORDER BY node_id asc";
+        $sel_query = "SELECT * FROM nodes where status = 'Active' ORDER BY node_id asc";
         $results = $conn->query($sel_query);
         while ($row = mysqli_fetch_assoc($results)) {
                 $node_id = $row['node_id'];

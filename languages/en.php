@@ -181,8 +181,8 @@ $lang['zone_max_operation_time_info'] = "Maximum operation time in minutes at an
 $lang['zone_hysteresis_info'] = "Minimim delay between zone off and on ";
 $lang['zone_sp_deadband_info'] = "Check link for <u><a class=\"text-muted\" href=\"https://en.wikipedia.org/wiki/Deadband\">Deadband</a></u>";
 $lang['zone_sensor_id_info'] = "Pre-discovered sensor";
-$lang['zone_controler_id_info'] = "Wireless zone controller number ";
-$lang['zone_controler_child_id_info'] = "Wireless zone controller relay number where zone is connected";
+$lang['zone_controler_id_info'] = "Select Zone Controller Type and Number ";
+$lang['zone_controler_child_id_info'] = "Zone controller relay number where zone is connected";
 $lang['zone_gpio_pin_info'] = "In case zone valve is controlled by RPI GPIO these are WiringPi GPIO number";
 $lang['zone_boost_info'] = "Boost console if you have any";
 $lang['zone_boost_button_info'] = "Boost button number if you have any";
@@ -268,7 +268,7 @@ $lang['unit_fahrenheit'] = "Fahrenheit";
 $lang['boiler_settings'] = "Boiler Settings";
 $lang['boiler_hysteresis_text'] = "Hysteresis (Minimum delay between power off and on)";
 $lang['node'] = "Node";
-$lang['child'] = "Child";
+$lang['max_child'] = "Max Number of Child IDs";
 $lang['boost_settings'] = "Boost Settings";
 $lang['boost_settings_text'] = "Boost settings for each zone i.e. Maximum operating time, Maximum temperature.";
 $lang['override_settings'] = "Override Settings";
@@ -302,8 +302,10 @@ $lang['pihome_update'] = "PiHome Update";
 $lang['pihome_update_text'] = "PiHome current software version and any available updates.";
 $lang['pihome_update_c_version'] = "Current System Version";
 $lang['pihome_update_u_version'] = "Available Update Version";
-$lang['pihome_backup'] = "Full System Backup";
-$lang['pihome_backup_text'] = "Full system backup will takes quite a while to complete.";
+$lang['pihome_backup'] = "Database Backup";
+$lang['pihome_backup_text'] = "Full database backup will takes quite a while to complete. Backup fill will be sent to below email address.";
+$lang['pihome_backup_email_info'] = "If you changed your email address make sure click save first";
+$lang['backup_start'] = "Start Backup";
 $lang['reboot_system'] = "Reboot System";
 $lang['reboot_system_text'] = "Are You Sure You Want To Reboot The System?";
 $lang['shutdown_system'] = "Shutdown System";
@@ -341,6 +343,18 @@ $lang['notice_interval'] = "Notice Interval";
 $lang['notice_interval_info'] = "Set Notice Interval in minutes.";
 $lang['node_id'] = "Node ID";
 $lang['last_seen'] = "Last Seen";
+
+$lang['node_setting'] = "Node Setting";
+$lang['node_settings_text'] = "You can Add GPIO, I2C relay board as Node, Wireless Nodes are automatically discovered. ";
+$lang['node_add'] = "Add Node";
+$lang['node_add_info_text'] = "You can Add GPIO, I2C relay board as Node, Wireless Nodes are automatically discovered.";
+$lang['node_type'] = "Node Type";
+$lang['node_type_info'] = "Node you want to make avaialble for Zone and Boiler controller";
+$lang['node_name'] = "Node Name";
+$lang['node_child_id'] = "Number of Node Child IDs";
+$lang['node_child_id_info'] = "Number of I2C Relays or Highest WirringPi GPIO pin number";
+$lang['node_id_info'] = "I2C board ID or 0 if you want to use Raspberry Pi GPIO";
+$lang['node_name_info'] = "Node name represent function of the Node you are adding";
 
 
 ?>

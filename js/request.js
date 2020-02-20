@@ -152,12 +152,10 @@ function update_lang(){
 function boiler_settings(){
 var idata="w=boiler_settings&o=update&status="+document.getElementById("checkbox2").checked;
     idata+="&name="+document.getElementById("name").value;
-	idata+="&node_id="+document.getElementById("node_id").value;
+	idata+="&node_id="+document.getElementById("selected_node_id").value;
 	idata+="&node_child_id="+document.getElementById("node_child_id").value;
-	idata+="&gpio_pin="+document.getElementById("gpio_pin").value;
 	idata+="&hysteresis_time="+document.getElementById("hysteresis_time").value;
 	idata+="&max_operation_time="+document.getElementById("max_operation_time").value;
-	idata+="&notice_interval="+document.getElementById("notice_interval").value;
     idata+="&wid=0";
     $.get('db.php',idata)
     .done(function(odata){
@@ -239,6 +237,47 @@ var idata="w=boost&o=update";
     });
 }
 
+//Add Node
+function add_node(){
+var idata="w=node&o=add&node_type="+document.getElementById("node_type").value;
+	idata+="&add_node_id="+document.getElementById("add_node_id").value;
+	idata+="&nodes_max_child_id="+document.getElementById("nodes_max_child_id").value;
+	idata+="&node_name="+document.getElementById("node_type").value+" Controller";
+        idata+="&notice_interval=0";
+    idata+="&wid=0";
+    $.get('db.php',idata)
+    .done(function(odata){
+        if(odata.Success)
+            reload_page();
+        else
+            console.log(odata.Message);
+    })
+    .fail(function( jqXHR, textStatus, errorThrown ){
+        if(jqXHR==401 || jqXHR==403) return;
+        console.log("add_node: Error.\r\n\r\njqXHR: "+jqXHR+"\r\n\r\ntextStatus: "+textStatus+"\r\n\r\nerrorThrown:"+errorThrown);
+    })
+    .always(function() {
+    });
+}
+
+//Delete Node
+function delete_node(wid){
+var idata="w=node&o=delete&wid="+wid;
+    $.get('db.php',idata)
+    .done(function(odata){
+        if(odata.Success)
+            reload_page();
+        else
+            console.log(odata.Message);
+    })
+    .fail(function( jqXHR, textStatus, errorThrown ){
+        if(jqXHR==401 || jqXHR==403) return;
+        console.log("delete_node: Error.\r\n\r\njqXHR: "+jqXHR+"\r\n\r\ntextStatus: "+textStatus+"\r\n\r\nerrorThrown:"+errorThrown);
+    })
+    .always(function() {
+    });
+}
+
 function reload_page()
 {
     var loc = window.location;
@@ -274,6 +313,25 @@ function db_backup() {
   	var quest = "?w=db_backup" + "&o=0" + "&frost_temp=0" + "&wid=0";
 	request('db.php', 'GET', quest, function(){ window.location="settings.php?db_backup"; });
     //window.location="settings.php?status=reboot";  
+}
+
+//update backup email adress 
+function backup_email_update(){
+var idata="w=backup_email_update&o=update&backup_email="+document.getElementById("backup_email").value;
+    idata+="&wid=0";
+    $.get('db.php',idata)
+    .done(function(odata){
+        if(odata.Success)
+            reload_page();
+        else
+            console.log(odata.Message);
+    })
+    .fail(function( jqXHR, textStatus, errorThrown ){
+        if(jqXHR==401 || jqXHR==403) return;
+        console.log("setup_email: Error.\r\n\r\njqXHR: "+jqXHR+"\r\n\r\ntextStatus: "+textStatus+"\r\n\r\nerrorThrown:"+errorThrown);
+    })
+    .always(function() {
+    });
 }
 
 //Restart MySensors Gateway
@@ -314,7 +372,7 @@ var idata="w=setup_gateway&o=update&status="+document.getElementById("checkbox1"
 
 //update email 
 function setup_email(){
-var idata="w=setup_email&o=update&status="+document.getElementById("checkbox2").checked;
+var idata="w=setup_email&o=update&status="+document.getElementById("checkbox3").checked;
     idata+="&e_smtp="+document.getElementById("e_smtp").value;
 	idata+="&e_username="+document.getElementById("e_username").value;
 	idata+="&e_password="+document.getElementById("e_password").value;
