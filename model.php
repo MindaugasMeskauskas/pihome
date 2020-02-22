@@ -249,12 +249,22 @@ echo '
 
 	echo '
 	<input class="form-control input-sm" type="hidden" id="selected_node_id" name="selected_node_id" value="'.$node_id.'"/>
+        <input class="form-control input-sm" type="hidden" id="selected_node_type" name="selected_node_type" value="'.$node_type.'"/>
+        <input class="form-control input-sm" type="hidden" id="gpio_pin_list" name="gpio_pin_list" value="'.implode(",", array_filter(Get_GPIO_List())).'"/>
 	<div class="form-group" class="control-label"><label>'.$lang['boiler_node_child_id'].'</label> <small class="text-muted">'.$lang['boiler_relay_gpio_text'].'</small>
 	<select class="form-control input-sm" type="text" id="node_child_id" name="node_child_id">
 	<option selected>'.$brow['node_child_id'].'</option>';
-	for ($x = 1; $x <=  $max_child_id; $x++) {
-        	echo '<option value="'.$x.'">'.$x.'</option>';
-	}
+        $pos=strpos($node_type, "GPIO");
+        if($pos !== false) {
+                $gpio_list=Get_GPIO_List();
+                for ($x = 0; $x <= count(array_filter($gpio_list)) - 1; $x++) {
+                        echo "<option value=".$gpio_list[$x].">".$gpio_list[$x]."</option>";
+                }
+        } else {
+                for ($x = 1; $x <=  $max_child_id; $x++) {
+                        echo '<option value="'.$x.'">'.$x.'</option>';
+                }
+        }
 	echo '
 	</select>
     <div class="help-block with-errors"></div></div>
@@ -576,9 +586,9 @@ echo '<p class="text-muted">'.$lang['node_add_info_text'].'</p>
 
 	<div class="form-group" class="control-label"><label>'.$lang['node_type'].'</label> <small class="text-muted">'.$lang['node_type_info'].'</small>
 
-	<select class="form-control input-sm" type="text" id="node_type" name="node_type">
+	<select class="form-control input-sm" type="text" id="node_type" onchange=show_hide_devices() name="node_type">
+	<option value="I2C" selected="selected">I2C</option>
 	<option value="GPIO">GPIO</option>
-	<option value="I2C">I2C</option>
 	</select>
     <div class="help-block with-errors"></div></div>
 
@@ -587,7 +597,7 @@ echo '<p class="text-muted">'.$lang['node_add_info_text'].'</p>
 	<input class="form-control input-sm" type="text" id="add_node_id" name="add_node_id" value="" placeholder="'.$lang['node_id'].'">
 	<div class="help-block with-errors"></div></div>
 		
-	<div class="form-group" class="control-label"><label>'.$lang['node_child_id'].'</label> <small class="text-muted">'.$lang['node_child_id_info'].'</small>
+	<div class="form-group" class="control-label" id="add_devices_label" style="display:block"><label>'.$lang['node_child_id'].'</label> <small class="text-muted">'.$lang['node_child_id_info'].'</small>
 	<input class="form-control input-sm" type="text" id="nodes_max_child_id" name="nodes_max_child_id" value="" placeholder="'.$lang['node_max_child_id'].'">
 	<div class="help-block with-errors"></div></div>
 
@@ -848,6 +858,154 @@ echo '</table></div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary btn-sm" data-dismiss="modal">'.$lang['close'].'</button>
                 <input type="button" name="submit" value="Save" class="btn btn-default login btn-sm" onclick="node_alerts()">
+            </div>
+        </div>
+    </div>
+</div>';
+
+
+//Time Zone
+echo '
+<div class="modal fade" id="time_zone" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+                <h5 class="modal-title">'.$lang['time_zone'].'</h5>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted"> '.$lang['time_zone_text'].'</p>
+				<form data-toggle="validator" role="form" method="post" action="settings.php" id="form-join">
+				<div class="form-group" class="control-label"><label>'.$lang['time_zone'].'</label>
+				<select class="form-control input-sm" type="number" id="new_time_zone" name="new_time_zone" >
+				
+				<option selected >'.settings($conn, 'timezone').'</option>';
+$timezones = array(
+    'Pacific/Midway'       => "(GMT-11:00) Midway Island",
+    'US/Samoa'             => "(GMT-11:00) Samoa",
+    'US/Hawaii'            => "(GMT-10:00) Hawaii",
+    'US/Alaska'            => "(GMT-09:00) Alaska",
+    'US/Pacific'           => "(GMT-08:00) Pacific Time (US &amp; Canada)",
+    'America/Tijuana'      => "(GMT-08:00) Tijuana",
+    'US/Arizona'           => "(GMT-07:00) Arizona",
+    'US/Mountain'          => "(GMT-07:00) Mountain Time (US &amp; Canada)",
+    'America/Chihuahua'    => "(GMT-07:00) Chihuahua",
+    'America/Mazatlan'     => "(GMT-07:00) Mazatlan",
+    'America/Mexico_City'  => "(GMT-06:00) Mexico City",
+    'America/Monterrey'    => "(GMT-06:00) Monterrey",
+    'Canada/Saskatchewan'  => "(GMT-06:00) Saskatchewan",
+    'US/Central'           => "(GMT-06:00) Central Time (US &amp; Canada)",
+    'US/Eastern'           => "(GMT-05:00) Eastern Time (US &amp; Canada)",
+    'US/East-Indiana'      => "(GMT-05:00) Indiana (East)",
+    'America/Bogota'       => "(GMT-05:00) Bogota",
+    'America/Lima'         => "(GMT-05:00) Lima",
+    'America/Caracas'      => "(GMT-04:30) Caracas",
+    'Canada/Atlantic'      => "(GMT-04:00) Atlantic Time (Canada)",
+    'America/La_Paz'       => "(GMT-04:00) La Paz",
+    'America/Santiago'     => "(GMT-04:00) Santiago",
+    'Canada/Newfoundland'  => "(GMT-03:30) Newfoundland",
+    'America/Buenos_Aires' => "(GMT-03:00) Buenos Aires",
+    'Greenland'            => "(GMT-03:00) Greenland",
+    'Atlantic/Stanley'     => "(GMT-02:00) Stanley",
+    'Atlantic/Azores'      => "(GMT-01:00) Azores",
+    'Atlantic/Cape_Verde'  => "(GMT-01:00) Cape Verde Is.",
+    'Africa/Casablanca'    => "(GMT) Casablanca",
+    'Europe/Dublin'        => "(GMT) Dublin",
+    'Europe/Lisbon'        => "(GMT) Lisbon",
+    'Europe/London'        => "(GMT) London",
+    'Africa/Monrovia'      => "(GMT) Monrovia",
+    'Europe/Amsterdam'     => "(GMT+01:00) Amsterdam",
+    'Europe/Belgrade'      => "(GMT+01:00) Belgrade",
+    'Europe/Berlin'        => "(GMT+01:00) Berlin",
+    'Europe/Bratislava'    => "(GMT+01:00) Bratislava",
+    'Europe/Brussels'      => "(GMT+01:00) Brussels",
+    'Europe/Budapest'      => "(GMT+01:00) Budapest",
+    'Europe/Copenhagen'    => "(GMT+01:00) Copenhagen",
+    'Europe/Ljubljana'     => "(GMT+01:00) Ljubljana",
+    'Europe/Madrid'        => "(GMT+01:00) Madrid",
+    'Europe/Paris'         => "(GMT+01:00) Paris",
+    'Europe/Prague'        => "(GMT+01:00) Prague",
+    'Europe/Rome'          => "(GMT+01:00) Rome",
+    'Europe/Sarajevo'      => "(GMT+01:00) Sarajevo",
+    'Europe/Skopje'        => "(GMT+01:00) Skopje",
+    'Europe/Stockholm'     => "(GMT+01:00) Stockholm",
+    'Europe/Vienna'        => "(GMT+01:00) Vienna",
+    'Europe/Warsaw'        => "(GMT+01:00) Warsaw",
+    'Europe/Zagreb'        => "(GMT+01:00) Zagreb",
+    'Europe/Athens'        => "(GMT+02:00) Athens",
+    'Europe/Bucharest'     => "(GMT+02:00) Bucharest",
+    'Africa/Cairo'         => "(GMT+02:00) Cairo",
+    'Africa/Harare'        => "(GMT+02:00) Harare",
+    'Europe/Helsinki'      => "(GMT+02:00) Helsinki",
+    'Europe/Istanbul'      => "(GMT+02:00) Istanbul",
+    'Asia/Jerusalem'       => "(GMT+02:00) Jerusalem",
+    'Europe/Kiev'          => "(GMT+02:00) Kyiv",
+    'Europe/Minsk'         => "(GMT+02:00) Minsk",
+    'Europe/Riga'          => "(GMT+02:00) Riga",
+    'Europe/Sofia'         => "(GMT+02:00) Sofia",
+    'Europe/Tallinn'       => "(GMT+02:00) Tallinn",
+    'Europe/Vilnius'       => "(GMT+02:00) Vilnius",
+    'Asia/Baghdad'         => "(GMT+03:00) Baghdad",
+    'Asia/Kuwait'          => "(GMT+03:00) Kuwait",
+    'Africa/Nairobi'       => "(GMT+03:00) Nairobi",
+    'Asia/Riyadh'          => "(GMT+03:00) Riyadh",
+    'Europe/Moscow'        => "(GMT+03:00) Moscow",
+    'Asia/Tehran'          => "(GMT+03:30) Tehran",
+    'Asia/Baku'            => "(GMT+04:00) Baku",
+    'Europe/Volgograd'     => "(GMT+04:00) Volgograd",
+    'Asia/Muscat'          => "(GMT+04:00) Muscat",
+    'Asia/Tbilisi'         => "(GMT+04:00) Tbilisi",
+    'Asia/Yerevan'         => "(GMT+04:00) Yerevan",
+    'Asia/Kabul'           => "(GMT+04:30) Kabul",
+    'Asia/Karachi'         => "(GMT+05:00) Karachi",
+    'Asia/Tashkent'        => "(GMT+05:00) Tashkent",
+    'Asia/Kolkata'         => "(GMT+05:30) Kolkata",
+    'Asia/Kathmandu'       => "(GMT+05:45) Kathmandu",
+    'Asia/Yekaterinburg'   => "(GMT+06:00) Ekaterinburg",
+    'Asia/Almaty'          => "(GMT+06:00) Almaty",
+    'Asia/Dhaka'           => "(GMT+06:00) Dhaka",
+    'Asia/Novosibirsk'     => "(GMT+07:00) Novosibirsk",
+    'Asia/Bangkok'         => "(GMT+07:00) Bangkok",
+    'Asia/Jakarta'         => "(GMT+07:00) Jakarta",
+    'Asia/Krasnoyarsk'     => "(GMT+08:00) Krasnoyarsk",
+    'Asia/Chongqing'       => "(GMT+08:00) Chongqing",
+    'Asia/Hong_Kong'       => "(GMT+08:00) Hong Kong",
+    'Asia/Kuala_Lumpur'    => "(GMT+08:00) Kuala Lumpur",
+    'Australia/Perth'      => "(GMT+08:00) Perth",
+    'Asia/Singapore'       => "(GMT+08:00) Singapore",
+    'Asia/Taipei'          => "(GMT+08:00) Taipei",
+    'Asia/Ulaanbaatar'     => "(GMT+08:00) Ulaan Bataar",
+    'Asia/Urumqi'          => "(GMT+08:00) Urumqi",
+    'Asia/Irkutsk'         => "(GMT+09:00) Irkutsk",
+    'Asia/Seoul'           => "(GMT+09:00) Seoul",
+    'Asia/Tokyo'           => "(GMT+09:00) Tokyo",
+    'Australia/Adelaide'   => "(GMT+09:30) Adelaide",
+    'Australia/Darwin'     => "(GMT+09:30) Darwin",
+    'Asia/Yakutsk'         => "(GMT+10:00) Yakutsk",
+    'Australia/Brisbane'   => "(GMT+10:00) Brisbane",
+    'Australia/Canberra'   => "(GMT+10:00) Canberra",
+    'Pacific/Guam'         => "(GMT+10:00) Guam",
+    'Australia/Hobart'     => "(GMT+10:00) Hobart",
+    'Australia/Melbourne'  => "(GMT+10:00) Melbourne",
+    'Pacific/Port_Moresby' => "(GMT+10:00) Port Moresby",
+    'Australia/Sydney'     => "(GMT+10:00) Sydney",
+    'Asia/Vladivostok'     => "(GMT+11:00) Vladivostok",
+    'Asia/Magadan'         => "(GMT+12:00) Magadan",
+    'Pacific/Auckland'     => "(GMT+12:00) Auckland",
+    'Pacific/Fiji'         => "(GMT+12:00) Fiji",
+);
+
+foreach($timezones as $xzone => $x_value) {
+	echo '<option value="'.$xzone.'">'.$x_value.'</option>';
+}
+echo '</select>';
+echo'
+				</select>
+                <div class="help-block with-errors"></div></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary btn-sm" data-dismiss="modal">'.$lang['cancel'].'</button>
+                <input type="button" name="submit" value="'.$lang['save'].'" class="btn btn-default login btn-sm" onclick="update_timezone()">
             </div>
         </div>
     </div>
@@ -1257,21 +1415,47 @@ function BoilerChildList(value)
 {
  var valuetext = value;
  var e = document.getElementById("node_id");
- var selected_sensor_id = e.options[e.selectedIndex].text;
- var selected_sensor_id = selected_sensor_id.split(" - ");
- document.getElementById("selected_node_id").value = selected_sensor_id[1];
+ var selected_node_id = e.options[e.selectedIndex].text;
+ var selected_node_id = selected_node_id.split(" - ");
+ document.getElementById("selected_node_id").value = selected_node_id[1];
+ document.getElementById("selected_node_type").value = selected_node_id[0];
+ var gpio_pins = document.getElementById('gpio_pin_list').value
 
  var opt = document.getElementById("node_child_id").getElementsByTagName("option");
  for(j=opt.length-1;j>=0;j--)
-  {
-  document.getElementById("node_child_id").options.remove(j);
-  }
- for(j=1;j<=valuetext;j++)
-  {
-  var optn = document.createElement("OPTION");
-  optn.text = j;
-  optn.value = j;
-  document.getElementById("node_child_id").options.add(optn);
-  }}
+ {
+        document.getElementById("node_child_id").options.remove(j);
+ }
+ if(selected_node_id.includes("GPIO")) {
+        var pins_arr = gpio_pins.split(',');
+        for(j=0;j<=pins_arr.length-1;j++)
+        {
+                var optn = document.createElement("OPTION");
+                optn.text = pins_arr[j];
+                optn.value = pins_arr[j];
+                document.getElementById("node_child_id").options.add(optn);
+        }
+ } else {
+        for(j=1;j<=valuetext;j++)
+        {
+                var optn = document.createElement("OPTION");
+                optn.text = j;
+                optn.value = j;
+                document.getElementById("node_child_id").options.add(optn);
+        }
+ }
+}
+function show_hide_devices()
+{
+ var e = document.getElementById("node_type");
+ var selected_node_type = e.options[e.selectedIndex].text;
+ if(selected_node_type.includes("GPIO")) {
+        document.getElementById("nodes_max_child_id").style.visibility = 'hidden';;
+        document.getElementById("add_devices_label").style.visibility = 'hidden';;
+ } else {
+        document.getElementById("nodes_max_child_id").style.visibility = 'visible';;
+        document.getElementById("add_devices_label").style.visibility = 'visible';;
+ }
+}
  </script>
 

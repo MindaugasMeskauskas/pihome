@@ -10,6 +10,8 @@ $lang['powerd_by_rpi'] = "Powered By: Raspberry Pi";
 $lang['lang_en'] = "English";
 $lang['lang_pt'] = "Portuguese";
 $lang['lang_fr'] = "Français";
+$lang['lang_ro'] = "Română";
+$lang['lang_lv'] = "Latviešu";
 
 $lang['start_time'] = "Start Time";
 $lang['end_time'] = "End Time";
@@ -351,10 +353,15 @@ $lang['node_add_info_text'] = "You can Add GPIO, I2C relay board as Node, Wirele
 $lang['node_type'] = "Node Type";
 $lang['node_type_info'] = "Node you want to make avaialble for Zone and Boiler controller";
 $lang['node_name'] = "Node Name";
-$lang['node_child_id'] = "Number of Node Child IDs";
-$lang['node_child_id_info'] = "Number of I2C Relays or Highest WirringPi GPIO pin number";
+$lang['node_child_id'] = "Number of Child Devices attached to Node";
+$lang['node_child_id_info'] = "Number of Attached Devices";
 $lang['node_id_info'] = "I2C board ID or 0 if you want to use Raspberry Pi GPIO";
 $lang['node_name_info'] = "Node name represent function of the Node you are adding";
 
+$lang['time_zone'] = "Time Zone";
+$lang['time_zone_text'] = "It is very importat to select your correct time zone otherwise you will have problem with your schedules";
+
+$lang['time_zone'] = "Time Zone";
+$lang['time_zone_text'] = "It is very importat to select your correct time zone otherwise you will have problem with your schedules";
 
 ?>

@@ -145,7 +145,7 @@ if (($_SERVER['SCRIPT_NAME'] == '/heat/schedule_edit.php') OR ($_SERVER['SCRIPT_
 }
 ?>
 
-<?php if (($_SERVER['REQUEST_URI'] == '/heat/holidays_add.php') OR ($_SERVER['SCRIPT_NAME'] == '/heat/holidays_edit.php')){ ?>
+<?php if (($_SERVER['REQUEST_URI'] == '/heat/holiday.php') OR ($_SERVER['SCRIPT_NAME'] == '/heat/holiday.php')){ ?>
     $(".form_datetime").datetimepicker({
         //format: "dd MM yyyy - hh:ii",
 		format: "yyyy-mm-dd hh:ii",
@@ -158,7 +158,7 @@ if (($_SERVER['SCRIPT_NAME'] == '/heat/schedule_edit.php') OR ($_SERVER['SCRIPT_
 </script>
 
 <script>
-<?php if (($_SERVER['SCRIPT_NAME'] == '/heat/schedule_edit.php') OR ($_SERVER['SCRIPT_NAME'] == '/heat/schedule_add.php') OR ($_SERVER['SCRIPT_NAME'] == '/heat/schedule.php')){ ?>
+<?php if (($_SERVER['SCRIPT_NAME'] == '/heat/schedule_add.php') OR ($_SERVER['SCRIPT_NAME'] == '/heat/schedule.php')){ ?>
 	 // popover
 	$("[data-toggle=popover]")
 		.popover()
