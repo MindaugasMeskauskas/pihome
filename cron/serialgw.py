@@ -9,7 +9,6 @@ class bc:
 	wht = '\033[0;37;40m'
 	ylw = '\033[93m'
 	fail = '\033[91m'
-	
 print bc.hed + " "
 print "  _____    _   _    _                            "
 print " |  __ \  (_) | |  | |                           "
@@ -18,18 +17,19 @@ print " |  ___/  | | |  __  |  / _ \  | |_  \_ \   / _ \ "
 print " | |      | | | |  | | | (_) | | | | | | | |  __/"
 print " |_|      |_| |_|  |_|  \___/  |_| |_| |_|  \___|"
 print " "
-print "    S M A R T   H E A T I N G   C O N T R O L "
+print "    "+bc.SUB + "S M A R T   H E A T I N G   C O N T R O L "+ bc.ENDC
+print bc.WARN +" "
 print "********************************************************"
-print "* MySensors 2.2 Serial Gateway Communication Script    *"
-print "* to communicate with MySensors Nodes, for more info   *"
-print "* please check MySensors API. Build Date: 18/09/2017   *"
-print "*      Version 0.05 - Last Modified 21/07/2019         *"
+print "* MySensors Wifi/Ethernet/Serial Gateway Communication *"
+print "* Script to communicate with MySensors Nodes, for more *"
+print "* info please check MySensors API.                     *"
+print "*      Build Date: 18/09/2017                          *"
+print "*      Version 0.10 - Last Modified 20/02/2020         *"
 print "*                                 Have Fun - PiHome.eu *"
 print "********************************************************"
-print " "
 print " " + bc.ENDC
 
-import MySQLdb as mdb, sys, serial, time
+import MySQLdb as mdb, sys, serial, telnetlib, time
 import ConfigParser, logging
 
 # Debug print to screen configuration
@@ -58,36 +58,31 @@ try:
 	cur = con.cursor()
 	cur.execute('SELECT * FROM gateway where status = 1 order by id asc limit 1')
 	row = cur.fetchone();
-	gatewaysp=row[5]
-	gatewayspeed=row[6]
-	
-	cur.execute('SELECT * FROM `hot_water_tank` WHERE status = 1 order by id asc limit 1')
-	item = cur.fetchone();
-	#id = int(item[0]) 
-	#sync = int(item[1]) 
-	#purge = int(item[2]) 
-	#status = int(item[3]) 
-	#fired_status = int(item[4]) 
-	#name = int(item[5]) 
-	#node_id = int(item[6]) 
-	#node_child_id = int(item[7]) 
-	#hysteresis_time = int(item[8]) 
-	#max_operation_time = int(item[9]) 
-	tank_size = int(item[10]) 
-	water_flow = int(item[11]) 
-	shower_temp = int(item[12]) 
-	cold_water_temp = int(item[13]) 
-	#shower_time = int(item[14]) 
-	#gpio_pin = int(item[15]) 
+	gatewaytype = row[4]		# serial/wifi
+	gatewaylocation = row[5]	# ip address or serial port of your MySensors gateway
+	gatewayport = row[6]		# UDP port or bound rate for MySensors gateway
+	gatewaytimeout = int(row[7])		# Connection timeout in Seconds
 
-	# ps. you can troubleshoot with "screen" 
-	# screen /dev/ttyAMA0 115200
-	# ser = serial.Serial('/dev/ttyMySensorsGateway', 115200, timeout=0)
-	ser = serial.Serial(gatewaysp, gatewayspeed, timeout=0)
-	
+	if gatewaytype == 'serial':
+		# ps. you can troubleshoot with "screen" 
+		# screen /dev/ttyAMA0 115200
+		# gw = serial.Serial('/dev/ttyMySensorsGateway', 115200, timeout=0)
+		gw = serial.Serial(gatewaylocation, gatewayport, timeout=gatewaytimeout)
+		print bc.grn + "Gateway Type:  Serial", bc.ENDC
+		print bc.grn + "Serial Port:   ",gatewaylocation, bc.ENDC 
+		print bc.grn + "Baud Rate:     ",gatewayport, bc.ENDC
+	else:
+		#MySensors Wifi/Ethernet Gateway Manuall override to specific ip Otherwise ip from MySQL Databased is used. 
+		#mysgw = "192.168.99.3" 	#ip address of your MySensors gateway
+		#mysport = "5003" 		#UDP port number for MySensors gateway
+		#gw = telnetlib.Telnet(mysgw, mysport, timeout=3) # Connect mysensors gateway
+		gw = telnetlib.Telnet(gatewaylocation, gatewayport, timeout=gatewaytimeout) # Connect mysensors gateway from MySQL Database
+		print bc.grn + "Gateway Type:  Wifi/Ethernet", bc.ENDC
+		print bc.grn + "IP Address:    ",gatewaylocation, bc.ENDC 
+		print bc.grn + "UDP Port:      ",gatewayport, bc.ENDC
+
 	msgcount = 0 # Defining variable for counting messages processed
-	print bc.grn + "Gateway Serial Port: ",gatewaysp, bc.ENDC 
-	print bc.grn + "Baud Rate:           ",gatewayspeed, bc.ENDC
+
 	
 	while 1:
 	## Outgoing messages
@@ -120,7 +115,7 @@ try:
 			msg += str(out_type)
 			msg += ';' 				#Separator
 			msg += str(out_payload) #Payload from DB
-			msg += ' \n'			#New line 		
+			msg += ' \n'			#New line
 			if dbgLevel >= 3 and dbgMsgOut == 1:
 				print "Full Message to Send:   ",msg.replace("\n","\\n") #Print Full Message
 				print "Node ID:                 ",out_node_id
@@ -131,16 +126,22 @@ try:
 				print "Pay Load:                ",out_payload
 				
 			# node-id ; child-sensor-id ; command ; ack ; type ; payload \n
-			ser.write(msg) # !!!! send it to serial (arduino attached to rPI by USB port)
+			gw.write(msg) # !!!! send it to serial (arduino attached to rPI by USB port)
 			cur.execute('UPDATE `messages_out` set sent=1 where id=%s', [out_id]) #update DB so this message will not be processed in next loop
 			con.commit() #commit above
 	
 	## Incoming messages
-		in_str = ser.readline() #Here is receiving part of the code
+		if gatewaytype == 'serial':
+			in_str = gw.readline() # Here is receiving part of the code for serial GW
+		else:
+			in_str = gw.read_until('\n', timeout=1) # Here is receiving part of the code for Wifi
+			
+			
 		if dbgLevel >= 2: # Debug print to screen
 			if time.strftime("%S",time.gmtime())== '00' and msgcount != 0:
 				print bc.hed + "\nMessages processed in last 60s:	",msgcount
-				print "Bytes in outgoing buffer:	",ser.in_waiting
+				if gatewaytype == 'serial':
+					print "Bytes in outgoing buffer:	",gw.in_waiting
 				print "Date & Time:                 	",time.ctime(),bc.ENDC
 				msgcount = 0 
 			if not sys.getsizeof(in_str) <= 22:
@@ -188,16 +189,7 @@ try:
 							print "1: Node ID:",node_id," Already Exist In Node Table, Updating MS Version"
 						cur.execute('UPDATE nodes SET ms_version = %s where node_id = %s', (payload, node_id))
 						con.commit()
-					# if node is water tank temp sensor add it to database
-					if (int(len(str(abs(node_id)))) == 3 and int(str(node_id)[1]) == 3):
-						cur.execute('SELECT COUNT(*) FROM `hot_water_tank` where node_id = (%s)', (node_id, )) 
-						row = cur.fetchone()  
-						row = int(row[0])
-						if (row == 0):
-							print "   Adding Hot Water Tank Node ",node_id,"\n\n"
-							cur.execute('INSERT INTO hot_water_tank(node_id) VALUES(%s)', (node_id, ))
-							con.commit()
-	
+		
 				# ..::Step One B::..
 				# First time Node Comes online with Repeater Feature Enabled: Add Node to The Nodes Table.
 				if (node_id != 0 and child_sensor_id == 255 and message_type == 0 and sub_type == 18):
@@ -250,12 +242,6 @@ try:
 					con.commit()
 					cur.execute('UPDATE `nodes` SET `last_seen`=now(), `sync`=0  WHERE node_id = %s', [node_id])
 					con.commit()
-					# if node is water tank temp sensor, update shower time
-					if (int(len(str(abs(node_id)))) == 3 and int(str(node_id)[1]) == 3):
-						print "   Updating Hot Water Tank temperature \n\n"
-						shower_time = tank_size / (( water_flow * shower_temp - cold_water_temp * water_flow ) / ( float(payload) - cold_water_temp ))
-						cur.execute('UPDATE `hot_water_tank` SET `shower_time` = %s WHERE node_id = %s', [shower_time, node_id])
-						con.commit()
 
 				# ..::Step Six::..
 				# Add Battery Voltage Nodes Battery Table
@@ -274,7 +260,7 @@ try:
 				if (node_id != 0 and child_sensor_id == 255 and message_type == 3 and sub_type == 0):
 					if dbgLevel >= 2 and dbgMsgIn == 1:
 						print "7: Adding Battery Level & Voltage for Node ID:", node_id, "Battery Level:",payload
-					##cur.execute('INSERT INTO nodes_battery(node_id, bat_voltage, bat_level) VALUES(%s,%s,%s)', (node_id, b_volt, payload)) ## This approach causes to crash serial.gw, if variable b_volt is missing. As well battery voltage could be assigned to wrong node.
+					##cur.execute('INSERT INTO nodes_battery(node_id, bat_voltage, bat_level) VALUES(%s,%s,%s)', (node_id, b_volt, payload)) ## This approach causes to crash this script, if variable b_volt is missing. As well battery voltage could be assigned to wrong node.
 					cur.execute('UPDATE nodes_battery SET bat_level = %s WHERE id=(SELECT nid from (SELECT MAX(id) as nid FROM nodes_battery WHERE node_id = %s ) as n)',(payload, node_id))
 					cur.execute('UPDATE nodes SET last_seen=now(), `sync`=0 WHERE node_id = %s', [node_id])
 					con.commit()
@@ -344,6 +330,9 @@ except mdb.Error, e:
 	con.close()
 except serial.SerialException as e:
 	print "SerialException:",format(e)
+	con.close()
+except EOFError as e:
+	print "EOFError:",format(e)
 	con.close()
 except Exception as e:
 	print format(e)
