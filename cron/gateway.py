@@ -62,6 +62,25 @@ try:
 	gatewaylocation = row[5]	# ip address or serial port of your MySensors gateway
 	gatewayport = row[6]		# UDP port or bound rate for MySensors gateway
 	gatewaytimeout = int(row[7])		# Connection timeout in Seconds
+	
+	cur.execute('SELECT * FROM `hot_water_tank` WHERE status = 1 order by id asc limit 1')
+	item = cur.fetchone();
+	#id = int(item[0]) 
+	#sync = int(item[1]) 
+	#purge = int(item[2]) 
+	#status = int(item[3]) 
+	#fired_status = int(item[4]) 
+	#name = int(item[5]) 
+	#node_id = int(item[6]) 
+	#node_child_id = int(item[7]) 
+	#hysteresis_time = int(item[8]) 
+	#max_operation_time = int(item[9]) 
+	tank_size = int(item[10]) 
+	water_flow = int(item[11]) 
+	shower_temp = int(item[12]) 
+	cold_water_temp = int(item[13]) 
+	#shower_time = int(item[14]) 
+	#gpio_pin = int(item[15]) 
 
 	if gatewaytype == 'serial':
 		# ps. you can troubleshoot with "screen" 
@@ -189,6 +208,15 @@ try:
 							print "1: Node ID:",node_id," Already Exist In Node Table, Updating MS Version"
 						cur.execute('UPDATE nodes SET ms_version = %s where node_id = %s', (payload, node_id))
 						con.commit()
+					# if node is water tank temp sensor add it to database
+					if (int(len(str(abs(node_id)))) == 3 and int(str(node_id)[1]) == 3):
+						cur.execute('SELECT COUNT(*) FROM `hot_water_tank` where node_id = (%s)', (node_id, )) 
+						row = cur.fetchone()  
+						row = int(row[0])
+						if (row == 0):
+							print "   Adding Hot Water Tank Node ",node_id,"\n\n"
+							cur.execute('INSERT INTO hot_water_tank(node_id) VALUES(%s)', (node_id, ))
+							con.commit()
 		
 				# ..::Step One B::..
 				# First time Node Comes online with Repeater Feature Enabled: Add Node to The Nodes Table.
@@ -242,6 +270,12 @@ try:
 					con.commit()
 					cur.execute('UPDATE `nodes` SET `last_seen`=now(), `sync`=0  WHERE node_id = %s', [node_id])
 					con.commit()
+					# if node is water tank temp sensor, update shower time
+					if (int(len(str(abs(node_id)))) == 3 and int(str(node_id)[1]) == 3):
+						print "   Updating Hot Water Tank temperature \n\n"
+						shower_time = tank_size / (( water_flow * shower_temp - cold_water_temp * water_flow ) / ( float(payload) - cold_water_temp ))
+						cur.execute('UPDATE `hot_water_tank` SET `shower_time` = %s WHERE node_id = %s', [shower_time, node_id])
+						con.commit()
 
 				# ..::Step Six::..
 				# Add Battery Voltage Nodes Battery Table
